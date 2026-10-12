@@ -80,3 +80,10 @@ studio/.sanity/
 
 # Mac junk
 .DS_Store*.tar.gz
+
+*.tar.gz
+.DS_Store
+_site/
+studio/dist/
+studio/.sanity/
+.env.*
