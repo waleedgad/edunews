@@ -1,0 +1,62 @@
+---
+layout: "layouts/base.njk"
+---
+<div class="feed-page">
+  <header class="feed-header">
+    <h1 class="feed-title feed-title-topic">
+      #{{ topic.title_ar if topic.language == 'ar' else topic.title_en }}
+    </h1>
+  </header>
+
+  <div class="feed-grid">
+    {% set articleCount = 0 %}
+    
+    {% for article in articles %}
+      <!-- Filter Logic: Match Language First -->
+      {% if article.language == topic.language %}
+        
+        <!-- Check Topic Reference Array -->
+        {% set hasTopic = false %}
+        {% if article.topics %}
+          {% for t in article.topics %}
+            {% if t.slug == topic.slug %}
+              {% set hasTopic = true %}
+            {% endif %}
+          {% endfor %}
+        {% endif %}
+
+        {% if hasTopic %}
+          {% set articleCount = articleCount + 1 %}
+          <div class="feed-item">
+            <div class="feed-card">
+              {% if article.imageUrl %}
+                <img src="{{ article.imageUrl }}" class="feed-card-image" alt="{{ article.title }}">
+              {% endif %}
+              
+              <div class="feed-card-body">
+                <small class="feed-card-date"><time datetime="{{ article.publishedAt }}">{{ article.publishedAt | truncate(10, true, "") }}</time></small>
+                <h2 class="feed-card-title">{{ article.title }}</h2>
+                <p class="feed-card-summary">{{ article.summary | truncate(120) }}</p>
+                
+                <div class="feed-card-footer">
+                  <a href="{{ article.permalink }}" class="feed-card-link">
+                    {{ 'اقرأ المزيد' if topic.language == 'ar' else 'Read More' }}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endif %}
+        
+      {% endif %}
+    {% endfor %}
+
+    {% if articleCount == 0 %}
+      <div class="feed-empty">
+        <p class="feed-empty-text">
+          {{ 'لا توجد مقالات تحت هذا الوسم حالياً.' if topic.language == 'ar' else 'No articles currently published under this tag.' }}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>

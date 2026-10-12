@@ -1,0 +1,54 @@
+---
+layout: "layouts/base.njk"
+---
+<div class="feed-page">
+  <header class="feed-header">
+    <h1 class="feed-title feed-title-category"{% if category.color %} style="--category-color: {{ category.color }};"{% endif %}>
+      {{ category.title_ar if category.language == 'ar' else category.title_en }}
+    </h1>
+    {% if category.description_ar or category.description_en %}
+      <p class="feed-lead">
+        {{ category.description_ar if category.language == 'ar' else category.description_en }}
+      </p>
+    {% endif %}
+  </header>
+
+  <div class="feed-grid">
+    {% set articleCount = 0 %}
+    
+    {% for article in articles %}
+      <!-- Filter Logic: Match Category Slug AND Language -->
+      {% if article.category.slug == category.slug and article.language == category.language %}
+        {% set articleCount = articleCount + 1 %}
+        
+        <div class="feed-item">
+          <div class="feed-card">
+            {% if article.imageUrl %}
+              <img src="{{ article.imageUrl }}" class="feed-card-image" alt="{{ article.title }}">
+            {% endif %}
+            
+            <div class="feed-card-body">
+              <small class="feed-card-date"><time datetime="{{ article.publishedAt }}">{{ article.publishedAt | truncate(10, true, "") }}</time></small>
+              <h2 class="feed-card-title">{{ article.title }}</h2>
+              <p class="feed-card-summary">{{ article.summary | truncate(120) }}</p>
+              
+              <div class="feed-card-footer">
+                <a href="{{ article.permalink }}" class="feed-card-link">
+                  {{ 'اقرأ المزيد' if category.language == 'ar' else 'Read More' }}
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+    {% endfor %}
+
+    {% if articleCount == 0 %}
+      <div class="feed-empty">
+        <p class="feed-empty-text">
+          {{ 'لا توجد مقالات في هذا القسم حالياً.' if category.language == 'ar' else 'No articles currently published in this section.' }}
+        </p>
+      </div>
+    {% endif %}
+  </div>
+</div>

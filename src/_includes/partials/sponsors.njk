@@ -1,0 +1,29 @@
+{#
+  SPONSORS BAND (full width, shared by the Arabic and English homepages)
+  Data: src/_data/sponsors.js (reads the "Sponsor" documents from Sanity).
+  Set `sponsorsLang` to "ar" or "en" before including.
+  Every logo is a link that opens in a new tab. Hidden automatically if no sponsors.
+  Styles: main.css under "Sponsors band".
+#}
+{% set L = sponsorsLang or "en" %}
+{% if sponsors and sponsors.items and sponsors.items.length %}
+<section class="sponsors" aria-labelledby="sponsors-title">
+    <div class="container">
+        <header class="sponsors-head">
+            <h2 class="sponsors-title" id="sponsors-title">{{ sponsors.title[L] }}</h2>
+        </header>
+
+        <ul class="sponsors-grid">
+            {% for s in sponsors.items %}
+            {% set sName = s.name[L] or s.name.en %}
+            <li class="sponsors-item">
+                <a class="sponsor-link" href="{{ s.url }}" target="_blank" rel="noopener noreferrer sponsored" aria-label="{{ sName }}">
+                    <img src="{{ s.logoUrl }}" alt="{{ sName }}" loading="lazy"
+                         onerror="this.closest('li').remove()">
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}

@@ -1,0 +1,58 @@
+---
+layout: layouts/base.njk
+title: "Editorial team | EduNews"
+lang: en
+language: en
+permalink: "/en/editorial-team/"
+eleventyExcludeFromCollections: true
+---
+{#
+  Static page — edit the header/CTA text below directly.
+  Replaces the "editorial-team" (en) entry that used to live in
+  src/_data/sitePages.js. The roster itself still comes from the site-wide
+  `authors` collection (same as author-profile.njk uses), filtered to
+  language == "en" — that part stays dynamic on purpose.
+  Styling comes entirely from main.css (.feed-page, .feed-header, .feed-grid,
+  .static-card, .team-*, .static-cta, .pill-btn) — don't add styles here.
+#}
+{% set authorBase = '/en/authors/' %}
+{% set team = [] %}
+{% for a in authors %}{% if a.language == 'en' %}{% set _ = team.push(a) %}{% endif %}{% endfor %}
+
+<div class="feed-page static-page static-page--team" data-translation-url="/ar/فريق-التحرير/">
+
+    <header class="feed-header">
+        <h1 class="feed-title feed-title-topic">Editorial team</h1>
+        <p class="feed-lead">The journalists and writers behind our coverage.</p>
+    </header>
+
+    {% if team.length %}
+    <div class="feed-grid">
+        {% for a in team %}
+        {% set name = a.name_en or a.name_ar %}
+        {% set role = a.role_en or a.role_ar %}
+        <div class="feed-item">
+            <article class="static-card team-card">
+                {% if a.avatarUrl %}
+                <img class="author-profile-avatar" src="{{ a.avatarUrl }}?w=240&h=240&fit=crop" alt="" width="120" height="120" loading="lazy">
+                {% else %}
+                <span class="author-profile-avatar team-initial" aria-hidden="true">{{ name | first }}</span>
+                {% endif %}
+                <h2 class="team-name"><a href="{{ authorBase }}{{ a.slug }}/">{{ name }}</a></h2>
+                {% if role %}<p class="team-role">{{ role }}</p>{% endif %}
+            </article>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="feed-empty"><p class="feed-empty-text">Our editorial team will appear here soon.</p></div>
+    {% endif %}
+
+    <div class="feature-reading-column">
+        <div class="static-cta">
+            <p>Have a tip or a correction? Write to the newsroom.</p>
+            <a href="mailto:editorial@edunews.example" class="pill-btn">Email the newsroom <i class="bi bi-arrow-right"></i></a>
+        </div>
+    </div>
+
+</div>

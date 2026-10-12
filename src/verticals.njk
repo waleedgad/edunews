@@ -1,0 +1,23 @@
+---
+layout: layouts/base.njk
+pagination:
+  data: verticals
+  size: 1
+  alias: vertical
+permalink: "/{{ vertical.lang }}/{{ vertical.slug }}/index.html"
+eleventyComputed:
+  language: "{{ vertical.lang }}"
+  title: "{{ vertical.title }}"
+---
+{#
+  VERTICAL PAGE: /ar/<slug>/ and /en/<slug>/
+  One page per vertical per language (list: src/_data/verticals.js, stories:
+  src/_data/verticalData.js). The layout is the vertical's template, chosen in Sanity
+  ("Page layout"):  src/_includes/layouts/verticals/<template>.njk
+
+  Variables available inside a template:
+    vertical.lang / .slug / .title / .description / .template
+    verticalData[vertical.lang ~ '/' ~ vertical.slug].articles   newest first (each has .tag)
+    verticalData[vertical.lang ~ '/' ~ vertical.slug].picks      sidebar list
+#}
+{% include "layouts/verticals/" ~ vertical.template ~ ".njk" %}

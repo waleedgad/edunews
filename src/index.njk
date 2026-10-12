@@ -1,0 +1,803 @@
+---
+title: "EduNews | أخبار التعليم - الرئيسية"
+layout: layouts/base.njk
+---
+{#
+  DATA WIRING (data comes from src/_data/homeData.js)
+
+  Wired to real content:
+    - Hero (cinematic)       homeData.hero          Homepage Manager picks, else newest (shows up to 6)
+    - Briefing cover        homeData.briefingCover Homepage Manager pick, else newest unused (News or Report only)
+    - Today's Picks         homeData.featured      articles with the Featured checkbox
+    - Breaking news bar     homeData.ticker        newest News/Brief articles (no reports / opinion, no count cap), Breaking pinned first
+                                                   (full-width bar above the hero; on phones long headlines scroll sideways first)
+    - Policy Watch lead     homeData.policyLead    Homepage Manager pick, else newest flagged
+    - Policy Watch others   homeData.policyWatch   articles with the Policy Watch checkbox, or in categories
+                                                   with "Feed Policy Watch". Never Editorial / Opinion.
+    - Articles & Reports    homeData.articlesReports  newest Opinion/Editorial + In-Depth Reports (not those
+                                                   flagged for Policy Watch / Investment), reserved for this
+                                                   grid and never repeated elsewhere; hidden when empty
+
+  Also wired (hidden when empty, no placeholder news is shown):
+    - Briefing card          homeData.briefingCard  the TOP story of the published Morning Brief, else newest unused News/Report story
+    - Today's Picks          homeData.featured      Morning Brief stories 2+, else articles with the Featured checkbox
+    - Explore by Sector      homeData.sectors       categories with "Show in Explore by Sector"
+    - Investment / Deals     homeData.investment    Homepage Manager lead, else newest from categories with
+                                                   "Feed Investment Watch". Never Policy Watch stories and
+                                                   never Editorial / Opinion (so the two blocks never share a story)
+
+  Still static placeholder content (no schema exists for these yet; each one is
+  marked with a TODO comment):
+    - Podcasts, Most Read, Signature Series (unwired, placeholder items)
+
+  Every article object from homeData.js is flat and single-language:
+    title, summary, url, imageUrl, imageAlt, category { title_ar, title_en, slug, color }
+  Placeholder fallbacks: hero, ticker and feed only fall back to placeholder
+  content if homeData is missing entirely (an empty list renders nothing rather
+  than fake news). Today's Picks and Policy Watch are optional, checkbox-driven
+  blocks, so they show their placeholder markup when nothing is flagged.
+#}
+{% set tickerItems = homeData.ticker or [
+    { tag: "عاجل", url: "#", title: "تحديث سريع حول قرار وزاري جديد يخص الجامعات الحكومية." },
+    { tag: "تحديث", url: "#", title: "إطلاق منصة رقمية جديدة لدعم الطلاب في التسجيل الإلكتروني." },
+    { tag: "تحديث", url: "#", title: "نتائج استطلاع حول رضا الطلاب عن التعلم الهجين هذا الفصل." }
+] %}
+{% if tickerItems and tickerItems.length %}
+{% set tickerCount = tickerItems.length %}
+{% set tickerMulti = tickerCount > 1 %}
+{% set tickerLoop = tickerCount > 2 %}
+{% set hasBreaking = tickerItems[0].tag == "عاجل" %}
+<section class="breaking-bar{{ ' is-breaking' if hasBreaking else '' }}" aria-label="آخر الأخبار">
+    <div class="breaking-bar-inner">
+        <div class="breaking-label">
+            <span class="breaking-dot" aria-hidden="true"></span>
+            <span class="breaking-label-text" data-breaking="عاجل" data-latest="آخر الأخبار">{{ "عاجل" if hasBreaking else "آخر الأخبار" }}</span>
+        </div>
+
+        <div class="swiper init-swiper breaking-swiper breaking-viewport">
+            <script type="application/json" class="swiper-config">
+                {
+                    "direction": "vertical",
+                    "loop": {{ "true" if tickerLoop else "false" }},
+                    "rewind": {{ "false" if tickerLoop else "true" }},
+                    "speed": 600,
+                    "slidesPerView": 1,
+                    "spaceBetween": 0,
+                    "allowTouchMove": false,
+                    "autoplay": {% if tickerMulti %}{ "delay": 3000, "disableOnInteraction": false, "pauseOnMouseEnter": false }{% else %}false{% endif %},
+                    "a11y": { "enabled": true }
+                }
+            </script>
+            <div class="swiper-wrapper">
+                {% for item in tickerItems %}
+                <div class="swiper-slide breaking-slide" data-breaking="{{ 'true' if item.tag == 'عاجل' else 'false' }}">
+                    <a class="breaking-link" href="{{ item.url }}">
+                        <span class="breaking-tag{% if item.tag == 'عاجل' %} is-breaking{% endif %}">{{ item.tag }}</span>
+                        <span class="breaking-headline-wrap"><span class="breaking-headline">{{ item.title }}</span></span>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+<style>
+/* Ticker on phones: a headline wider than the bar scrolls sideways to its end (see script below) */
+@media (max-width: 767.98px) {
+    .breaking-bar .breaking-link { display: flex; align-items: center; min-width: 0; gap: .5rem; }
+    .breaking-bar .breaking-tag { flex: 0 0 auto; }
+    .breaking-bar .breaking-headline-wrap { flex: 1 1 auto; min-width: 0; overflow: hidden; display: block; }
+    .breaking-bar .breaking-headline { display: inline-block; white-space: nowrap; overflow: visible; text-overflow: clip; max-width: none; will-change: transform; }
+}
+</style>
+<script>
+/* Ticker, phones only. When the active headline is wider than the bar: pause the vertical autoplay,
+   scroll the headline sideways until its end, hold a moment, then go on to the next headline.
+   Headlines that fit, desktop and reduced-motion keep the normal vertical rotation untouched. */
+(function () {
+    var el = document.querySelector('.breaking-swiper');
+    if (!el) return;
+    var bar = el.closest('.breaking-bar');
+    var mq = window.matchMedia('(max-width: 767.98px)');
+    var reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    var sw = null, anim = null, timer = null, resizeTimer = null, raf = 0;
+    var PAUSE = 1000;          // ms before the scroll starts and after it ends
+    var SPEED = 0.06;          // px per ms while scrolling sideways
+
+    // The thin progress line under the bar (--tk-p, filled by main.js from Swiper's autoplay clock)
+    // follows the sideways scroll while autoplay is stopped, so it never sits frozen.
+    function setP(v) { if (bar) bar.style.setProperty('--tk-p', v.toFixed(4)); }
+    function trackProgress() {
+        cancelAnimationFrame(raf);
+        (function tick() {
+            if (!anim) return;
+            var t = anim.effect && anim.effect.getComputedTiming();
+            if (t && t.progress != null) setP(t.progress);
+            raf = requestAnimationFrame(tick);
+        })();
+    }
+
+    function clearScroll() {
+        cancelAnimationFrame(raf);
+        if (anim) { anim.cancel(); anim = null; }
+        clearTimeout(timer); timer = null;
+    }
+
+    function handle() {
+        clearScroll();
+        if (!sw || sw.destroyed) return;
+        var hasAuto = !!(sw.params.autoplay && sw.autoplay);
+        var slide = sw.slides[sw.activeIndex];
+        var wrap = slide && slide.querySelector('.breaking-headline-wrap');
+        var text = slide && slide.querySelector('.breaking-headline');
+        var overflow = (mq.matches && !reduce.matches && wrap && text) ? Math.ceil(text.offsetWidth - wrap.clientWidth) : 0;
+
+        if (overflow < 4) {                       // fits (or not on a phone): normal behaviour
+            if (hasAuto && !sw.autoplay.running) sw.autoplay.start();
+            return;
+        }
+        if (hasAuto) sw.autoplay.stop();
+        setP(0);
+        var dist = (getComputedStyle(text).direction === 'rtl' ? 1 : -1) * overflow;
+        timer = setTimeout(function () {
+            anim = text.animate(
+                [{ transform: 'translateX(0)' }, { transform: 'translateX(' + dist + 'px)' }],
+                { duration: Math.max(1200, overflow / SPEED), easing: 'linear', fill: 'forwards' }
+            );
+            trackProgress();
+            anim.onfinish = function () {
+                cancelAnimationFrame(raf); setP(1);
+                timer = setTimeout(function () {
+                    if (hasAuto) sw.slideNext();  // next slide's handler restarts autoplay if it fits
+                    else handle();                // single headline: play it again
+                }, PAUSE);
+            };
+        }, PAUSE);
+    }
+
+    function setup(instance) {
+        sw = instance;
+        sw.on('slideChangeTransitionEnd', handle);
+        var onChange = function () { handle(); };
+        if (mq.addEventListener) { mq.addEventListener('change', onChange); reduce.addEventListener('change', onChange); }
+        window.addEventListener('resize', function () {
+            clearTimeout(resizeTimer);
+            resizeTimer = setTimeout(handle, 250);
+        });
+        (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(handle);
+    }
+
+    // main.js creates the Swiper; wait until it is attached to the element
+    var tries = 0;
+    var poll = setInterval(function () {
+        if (el.swiper) { clearInterval(poll); setup(el.swiper); }
+        else if (++tries > 50) clearInterval(poll);
+    }, 100);
+})();
+</script>
+{% endif %}
+
+{#
+  HERO: CINEMATIC FULL-BLEED (one story at a time, edge to edge)
+  Wired to homeData.hero (curated picks first, else newest). Shows up to 6.
+  Slides crossfade (Swiper fade effect) with a slow zoom on the active image.
+  Controls: thin progress lines (Swiper pagination bullets, each fills over the
+  autoplay delay) + a "01 / 06" counter that main.js keeps in sync. No arrows.
+  Autoplay only pauses while a LINK in the hero is hovered/focused (see main.js),
+  not when the mouse is anywhere over the slider.
+  Colours: --accent-color badge, white text, dark gradient overlay.
+  Styles live in main.css under "Hero: cinematic full-bleed".
+#}
+{% set heroPosts = homeData.hero or [
+    {
+        url: "#",
+        imageUrl: "/assets/img/profile/new-photo.webp",
+        imageAlt: "Higher Education News",
+        category: { title_ar: "تعليم عالي" },
+        title: "انطلاق أعمال المؤتمر السنوي لتطوير التعليم الجامعي والبحث العلمي",
+        summary: "تناقش الجلسات أحدث آليات التحول الرقمي وتطوير المناهج الأكاديمية بما يتوافق مع رؤية المستقبل."
+    },
+    {
+        url: "#",
+        imageUrl: "/assets/img/profile/new-photo.webp",
+        imageAlt: "EdTech & Innovation",
+        category: { title_ar: "تكنولوجيا التعليم" },
+        title: "كيف توظف المؤسسات التعليمية الذكاء الاصطناعي في إدارة شؤون الطلاب",
+        summary: "نظرة شاملة على أحدث الأدوات التكنولوجية التي تساعد إدارات المدارس على تحسين تجربة التعلم."
+    }
+] %}
+{% set heroList = heroPosts.slice(0, 6) %}
+{% set heroCount = heroList.length %}
+
+<section class="hero-cine" aria-label="أبرز الأخبار">
+    <div class="swiper init-swiper edunews-hero-swiper hero-cine-swiper">
+
+        <script type="application/json" class="swiper-config">
+            {
+                "loop": true,
+                "speed": 1200,
+                "autoplay": { "delay": 6000, "disableOnInteraction": false, "pauseOnMouseEnter": false },
+                "effect": "fade",
+                "fadeEffect": { "crossFade": true },
+                "slidesPerView": 1,
+                "keyboard": { "enabled": true },
+                "a11y": { "enabled": true },
+                "pagination": { "el": ".hero-cine-lines", "clickable": true }
+            }
+        </script>
+
+        <div class="swiper-wrapper">
+            {% for post in heroList %}
+            <div class="swiper-slide">
+                <div class="hero-cine-slide">
+                    <img src="{{ post.imageUrl }}" alt="{{ post.imageAlt }}" class="hero-cine-img"
+                         {% if loop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+                    <div class="hero-cine-shade" aria-hidden="true"></div>
+
+                    <div class="hero-cine-content">
+                        <div class="container">
+                            <div class="hero-cine-text">
+                                <span class="hero-cine-badge">{{ post.category.title_ar or post.category.title_en }}</span>
+                                <h2 class="hero-cine-title">
+                                    <a href="{{ post.url }}">{{ post.title }}</a>
+                                </h2>
+                                {% if post.summary %}
+                                <p class="hero-cine-summary">{{ post.summary }}</p>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if heroCount > 1 %}
+        <div class="hero-cine-controls">
+            <div class="container hero-cine-controls-row">
+                <div class="hero-cine-lines"></div>
+                <span class="hero-cine-count" dir="ltr" aria-hidden="true"><b>01</b> / {{ "0" ~ heroCount if heroCount < 10 else heroCount }}</span>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
+<div class="container my-4">
+
+    {# Shared section header used by EVERY section: green rule + accent tab, title, optional "More" pill #}
+{% macro sectionHead(title, url="#", more=true) %}
+<header class="sec-head">
+    <h2 class="sec-head-title">
+        {% if url and url != "#" %}
+            <a href="{{ url }}" class="sec-head-link">{{ title }}</a>
+        {% else %}
+            {{ title }}
+        {% endif %}
+    </h2>
+    {% if more %}<a href="{{ url }}" class="pill-btn">المزيد <i class="bi bi-arrow-left"></i></a>{% endif %}
+</header>
+{% endmacro %}
+
+    <!-- ==========================================
+         SECTION 1: MORNING BRIEFING HERO
+         ========================================== -->
+    <section class="row g-4 mb-5 briefing-section">
+
+        <!-- Right: Cover image with overlay headline -->
+        <div class="col-lg-5">
+            {#
+              Wired to homeData.briefingCover (single article reference).
+              Same shape assumption as heroArticles: cover.title, cover.summary,
+              cover.imageUrl, cover.imageAlt, cover.url.
+              NOTE: the original "120 مدرسة تجريبية | ..." stats line has no matching
+              field on article.js — there's no schema for a short stat/fact string, so
+              it's swapped for the article's summary below. If you want the real
+              stat-bullet format back, add a field for it (e.g. `briefingFacts` on
+              homePage.js, or a dedicated field on article.js) and swap it back in here.
+            #}
+            {% set cover = homeData.briefingCover %}
+            <div class="cover-hero" style="position:relative">
+                <img src="{{ cover.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ cover.imageAlt or 'Cover story' }}" class="cover-hero-img">
+                <div class="cover-overlay">
+                    {# stretched-link makes the whole cover (photo included) open the story; the button below sits above it #}
+                    <h1 class="cover-headline"><a href="{{ cover.url or '#' }}" class="stretched-link" style="color:inherit;text-decoration:none">{{ cover.title or "وزارة التعليم تستعد لطرح حزمة إصلاحات شاملة للمناهج الوطنية" }}</a></h1>
+                    <p class="cover-facts">{{ cover.summary or "120 مدرسة تجريبية | 4.2 مليار جنيه ميزانية التطوير | إطلاق تدريجي على 3 سنوات" }}</p>
+                    <a href="/ar/النشرة-الصباحية/" class="pill-btn pill-btn-light" style="position:relative;z-index:2">اقرأ النشرة الصباحية <i class="bi bi-arrow-left"></i></a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Left: Callout card + Today's Picks digest -->
+        <div class="col-lg-7">
+
+            {#
+              Wired to homeData.briefingCard: newest unused story with Content Format = Standard News or Report.
+              Hidden when there is none.
+            #}
+            {% set bc = homeData.briefingCard %}
+            {% if bc %}
+            <div class="briefing-card mb-4">
+                <div class="briefing-card-body">
+                    <h2 class="briefing-headline"><a href="{{ bc.url }}" style="color:inherit;text-decoration:none">{{ bc.title }}</a></h2>
+                    <div class="briefing-content">
+                        <div class="briefing-image-wrap">
+                            <a href="{{ bc.url }}" aria-label="{{ bc.title }}"><img src="{{ bc.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ bc.imageAlt or bc.title }}"></a>
+                        </div>
+                        <div class="briefing-text">
+                            <p><strong>في الخبر الأبرز هذا الصباح:</strong> <a href="{{ bc.url }}" style="color:inherit;text-decoration:none">{{ bc.summary }}</a></p>
+                        </div>
+                    </div>
+                    <a href="/ar/النشرة-الصباحية/" class="pill-btn mt-4">اقرأ النشرة الصباحية <i class="bi bi-arrow-left"></i></a>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Wired to homeData.featured (articles with the Featured checkbox).
+               Static placeholder list is shown only when nothing is featured. #}
+            {% set picks = homeData.featured %}
+            <div class="today-picks">
+                {{ sectionHead("لدينا اليوم", more=false) }}
+                <div class="row g-0">
+                {% if picks and picks.length %}
+
+                    <div class="col-6 today-picks-col">
+                        {% for p in picks.slice(0, 3) %}
+                        <div class="pick-item">
+                            <span class="pick-tag">{{ p.category.title_ar or p.category.title_en or "نتابع اليوم" }}</span>
+                            <a href="{{ p.url }}">{{ p.title }}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    {% if picks.length > 3 %}
+                    <div class="col-6 today-picks-col">
+                        {% for p in picks.slice(3, 6) %}
+                        <div class="pick-item">
+                            <span class="pick-tag">{{ p.category.title_ar or p.category.title_en or "نتابع اليوم" }}</span>
+                            <a href="{{ p.url }}">{{ p.title }}</a>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="col-6 today-picks-col">
+                        <div class="pick-item">
+                            <span class="pick-tag">نتابع اليوم</span>
+                            <a href="#">الوزارة تطلق مبادرة جديدة لدعم رقمنة الفصول الدراسية خلال العام المقبل.</a>
+                        </div>
+                        <div class="pick-item">
+                            <span class="pick-tag">نتابع اليوم</span>
+                            <a href="#">جامعات خاصة تعلن عن منح دراسية جزئية لطلاب المرحلة الثانوية المتفوقين.</a>
+                        </div>
+                        <div class="pick-item">
+                            <span class="pick-tag">تجارة</span>
+                            <a href="#">قطاع النشر التعليمي يستهدف نموًا بنسبة 12% بنهاية العام الحالي.</a>
+                        </div>
+                    </div>
+
+                    <div class="col-6 today-picks-col">
+                        <div class="pick-item">
+                            <span class="pick-tag">الاقتصاد الأخضر</span>
+                            <a href="#">صندوق جديد لدعم المدارس الصديقة للبيئة.. لكن أين تذهب الميزانيات الحالية؟</a>
+                        </div>
+                        <div class="pick-item">
+                            <span class="pick-tag">الأسواق العالمية</span>
+                            <a href="#">قطاع تكنولوجيا التعليم يشهد تباطؤًا في الاستثمار المباشر هذا الربع.</a>
+                        </div>
+                        <div class="pick-item">
+                            <span class="pick-tag">على الرادار</span>
+                            <a href="#">شركة إنشاءات تسند عقود بناء 6 مدارس جديدة بقيمة 900 مليون جنيه.</a>
+                        </div>
+                    </div>
+
+                {% endif %}
+                </div>
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- ==========================================
+         SECTION: POLICY WATCH (3-column lead layout)
+         ========================================== -->
+    <section class="mb-5 policy-watch">
+        {{ sectionHead("رصد السياسات التعليمية", url="/ar/السياسات-والقرارات/") }}
+
+        <div class="pw-grid">
+
+            <!-- Lead story -->
+            {# Wired to homeData.policyLead (single article reference). #}
+            {% set pwLead = homeData.policyLead %}
+            <article class="pw-col pw-lead story">
+                <a href="{{ pwLead.url or '#' }}" class="story-media ratio-3x2">
+                    <img src="{{ pwLead.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ pwLead.imageAlt or 'لجنة وزارية' }}">
+                </a>
+                <h3 class="story-title story-title-xl text-center mt-4">
+                    <a href="{{ pwLead.url or '#' }}">{{ pwLead.title or "لجنة وزارية تعتمد دراسة التقييم المحدّثة لنظام الثانوية العامة في خطوة نحو التطبيق" }}</a>
+                </h3>
+                <p class="story-excerpt text-center">{{ pwLead.summary or "صباح الخير.. لدينا ثلاثة أخبار لبدء يومك من قلب المشهد التعليمي…" }}</p>
+            </article>
+
+            {# Wired to homeData.policyWatch (articles with the Policy Watch checkbox or in a
+               category that feeds Policy Watch, minus the lead; Editorial / Opinion excluded). Slot layout: 2 stacked + 1 big + 1 compact row.
+               The static placeholders below are used only when there is no real
+               lead either, so real and placeholder stories are never mixed. #}
+            {% set pwFallback = [
+                { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "القبول بالجامعات الأهلية", title: "المجلس الأعلى للجامعات يعلن جدولًا زمنيًا جديدًا للقبول بالجامعات الأهلية خلال الأسابيع المقبلة" },
+                { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "التسجيل الإلكتروني", title: "الوزارة توافق على قواعد جديدة تتيح للمدارس إنجاز التسجيل بالكامل إلكترونيًا" },
+                { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "التصنيف التعليمي", title: "مؤسسة دولية تُبقي على تصنيف مصر التعليمي ضمن الفئة المتقدمة", summary: "صباح الخير.. قطاع التعليم في صدارة المشهد اليوم، والجامعات والمدارس والتدريب المهني تتحرك كلٌّ بإيقاعه…" },
+                { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "المدارس الفنية", title: "البنك الدولي ووزارة التعليم يبحثان تمويل توسعة المدارس الفنية" }
+            ] %}
+            {% set pwStories = homeData.policyWatch if homeData.policyLead else pwFallback %}
+
+            {% if pwStories.length > 0 %}
+            <!-- Two stacked small stories -->
+            <div class="pw-col pw-mid">
+                {% for item in pwStories.slice(0, 2) %}
+                <article class="story story-stacked">
+                    <a href="{{ item.url }}" class="story-media ratio-3x2">
+                        <img src="{{ item.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ item.imageAlt or item.title }}">
+                    </a>
+                    <h3 class="story-title story-title-md mt-3">
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                    </h3>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            {% if pwStories.length > 2 %}
+            <!-- Right column: big story + compact row -->
+            <div class="pw-col pw-side">
+                {% set big = pwStories[2] %}
+                <article class="story">
+                    <a href="{{ big.url }}" class="story-media ratio-3x2">
+                        <img src="{{ big.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ big.imageAlt or big.title }}">
+                    </a>
+                    <h3 class="story-title story-title-lg mt-3">
+                        <a href="{{ big.url }}">{{ big.title }}</a>
+                    </h3>
+                    <p class="story-excerpt">{{ big.summary }}</p>
+                </article>
+                {% if pwStories[3] %}
+                {% set row = pwStories[3] %}
+                <article class="story story-row story-row-divided">
+                    <h3 class="story-title story-title-sm">
+                        <a href="{{ row.url }}">{{ row.title }}</a>
+                    </h3>
+                    <a href="{{ row.url }}" class="story-media story-thumb ratio-3x2">
+                        <img src="{{ row.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ row.imageAlt or row.title }}">
+                    </a>
+                </article>
+                {% endif %}
+            </div>
+            {% endif %}
+
+        </div>
+    </section>
+
+
+    <!-- ==========================================
+         SECTION: EXPLORE BY SECTOR (4 cards)
+         ========================================== -->
+{#
+  Wired to homeData.sectors: categories with "Show in Explore by Sector" ticked,
+  ordered by Homepage Order. Each card shows that category's newest story.
+  Hidden when no category is ticked.
+#}
+{% set arNums = ['٠١','٠٢','٠٣','٠٤','٠٥','٠٦'] %}
+{% if homeData.sectors and homeData.sectors.length %}
+    <section class="mb-5 explore-panel" aria-labelledby="explore-title">
+        <header class="explore-head">
+            <span class="explore-kicker">مراجعة القطاعات</span>
+            <h2 class="explore-title" id="explore-title">استكشف EduNews حسب قطاعك</h2>
+            <p class="explore-sub">نظرة قريبة على أبرز الأنشطة التي تصنع العناوين في كل قطاع تعليمي</p>
+        </header>
+
+        <div class="explore-grid">
+            {% for s in homeData.sectors %}
+            <article class="explore-card">
+                <span class="explore-num">{{ arNums[loop.index0] }}</span>
+                <h3 class="explore-logo">{{ s.title }}</h3>
+                {% if s.lead %}
+                <p><a href="{{ s.lead.url }}">{{ s.lead.title }}</a></p>
+                {% else %}
+                <p>{{ s.description }}</p>
+                {% endif %}
+                <a href="{{ s.url or (s.lead.url if s.lead else '#') }}" class="explore-more">المزيد <i class="bi bi-arrow-left"></i></a>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+
+    <!-- ==========================================
+         SECTION: INVESTMENT WATCH + M&A WATCH
+         ========================================== -->
+{#
+  Wired to homeData.investment: the lead is the Homepage Manager "Investment Watch Lead Story"
+  pick, else the newest story from categories flagged "Feed Investment Watch". Policy Watch
+  stories and Editorial / Opinion never appear here.
+  First = overlay lead, next 2 = boxed pair, the rest = the deals column.
+  Hidden when no category is flagged / no stories exist.
+#}
+{% set inv = homeData.investment %}
+{% if inv and inv.lead %}
+    <section class="mb-5 duo-section">
+
+        <!-- Investment Watch -->
+        <div class="duo-main">
+            {{ sectionHead("رصد الاستثمار", inv.url or "/ar/اقتصاد-واستثمار-التعليم/") }}
+
+            <a href="{{ inv.lead.url }}" class="overlay-card story">
+                <img src="{{ inv.lead.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ inv.lead.imageAlt or inv.lead.title }}">
+                <h3 class="overlay-title">{{ inv.lead.title }}</h3>
+            </a>
+
+            {% if inv.pair.length %}
+            <div class="duo-pair">
+                {% for item in inv.pair %}
+                <article class="story story-row story-row-boxed">
+                    <h3 class="story-title story-title-sm">
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                    </h3>
+                    <a href="{{ item.url }}" class="story-media story-thumb ratio-3x2">
+                        <img src="{{ item.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ item.imageAlt or item.title }}">
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- M&A / Deals column -->
+        {% if inv.deals.length %}
+        <div class="duo-side">
+            {{ sectionHead("الاستحواذات والشراكات", more=false) }}
+
+            <div class="story-list">
+                {% for item in inv.deals %}
+                <article class="story story-row">
+                    <h3 class="story-title story-title-md">
+                        <a href="{{ item.url }}">{{ item.title }}</a>
+                    </h3>
+                    <a href="{{ item.url }}" class="story-media story-thumb ratio-3x2">
+                        <img src="{{ item.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ item.imageAlt or item.title }}">
+                    </a>
+                </article>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </section>
+{% endif %}
+
+
+<!-- ==========================================
+     SECTION: SIGNATURE SERIES (expanding panels)
+     ========================================== -->
+{# TODO: UNWIRED. Static placeholder content for now; homeData.signature is not used here.
+   To re-wire: replace sigItems with homeData.signature and wrap the <section> in
+   {% if sigItems and sigItems.length %} ... {% endif %}. Panel label = category name. #}
+{% set sigItems = [
+    { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "ملف خاص", category: { title: "القسم الأول" }, title: "عنوان ملف خاص تجريبي يوضح مساحة السلسلة المميزة" },
+    { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "ملف خاص", category: { title: "القسم الثاني" }, title: "عنوان ملف خاص ثانٍ يعرض نص تجريبي مؤقت" },
+    { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "ملف خاص", category: { title: "القسم الثالث" }, title: "عنوان ملف خاص ثالث بنص مؤقت لحين ربط المحتوى" },
+    { url: "#", imageUrl: "/assets/img/placeholder.png", imageAlt: "ملف خاص", category: { title: "القسم الرابع" }, title: "عنوان ملف خاص رابع بنص مؤقت لحين ربط المحتوى" }
+] %}
+<section class="sig mb-5" aria-labelledby="sig-heading">
+
+    <header class="sig-head">
+        <div class="sig-head-text">
+            <span class="sig-eyebrow">EduNews</span> · ملف خاص
+            <h2 class="sig-heading" id="sig-heading">السلسلة المميزة</h2>
+        </div>
+        <a href="/ar/السلاسل/" class="sig-more">المزيد <i class="bi bi-arrow-left"></i></a>
+    </header>
+
+    <div class="sig-row">
+        {% for p in sigItems %}
+        <a href="{{ p.url }}" class="sig-panel{% if loop.first %} is-active{% endif %}">
+            <img class="sig-panel-img" src="{{ p.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ p.imageAlt or p.title }}" loading="lazy">
+            <span class="sig-panel-no" aria-hidden="true"></span>
+            <span class="sig-panel-label" aria-hidden="true">{{ p.category.title if p.category else p.title }}</span>
+            <div class="sig-panel-body">
+                <span class="sig-brand">
+                    <span class="sig-brand-main">Edu<span>News</span></span>
+                    <span class="sig-brand-sub">ملف خاص</span>
+                </span>
+                <h3 class="sig-panel-title">{{ p.title }}</h3>
+                <span class="sig-panel-cta">اقرأ الملف <i class="bi bi-arrow-left"></i></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+{# Touch devices have no hover: first tap opens a panel, second tap follows the link.
+   Mouse and keyboard need no JS (pure CSS). Move this into your main JS if you prefer. #}
+<script>
+(function () {
+    var row = document.querySelector('.sig-row');
+    if (!row) return;
+    var panels = Array.prototype.slice.call(row.querySelectorAll('.sig-panel'));
+    var touch = window.matchMedia('(hover: none)');
+    row.addEventListener('click', function (e) {
+        var p = e.target.closest('.sig-panel');
+        if (!p || !touch.matches || p.classList.contains('is-active')) return;
+        e.preventDefault();
+        panels.forEach(function (x) { x.classList.toggle('is-active', x === p); });
+    });
+})();
+</script>
+
+
+
+    <!-- ==========================================
+         SECTION: PODCASTS (one featured lead + grid of episodes)
+         ========================================== -->
+{# TODO: fully static — no schema exists yet for this section's content.
+   When one does, feed podLead / podEpisodes from homeData and keep the markup.
+   Each episode: cover = "img" or "brand"; brand covers render the text cover. #}
+{% set podLead = {
+    show: "صنّاع التعليم",
+    ep: "الحلقة 42",
+    title: "هدى الشريف عن القصص والتجارب وبناء المجتمع التعليمي",
+    excerpt: "هل يعيش التعليم المصري لحظة تحوّل؟ والأهم، هل نملك الشجاعة لنروي القصة كاملة؟ حوار مفتوح عن المدرّسين والمدارس وما يصنع مجتمعًا تعليميًا حقيقيًا.",
+    dur: "53:11",
+    date: "منذ يومين",
+    url: "#"
+} %}
+{% set podEpisodes = [
+    { show: "صباح EduNews", title: "ملخصك اليومي لأهم العناوين التي تصنع مستقبل التعليم في مصر", dur: "10:37", date: "اليوم", cover: "brand" },
+    { show: "صنّاع التعليم", title: "كيف تُبنى مدرسة ناجحة في قرية بلا موارد؟", dur: "38:20", date: "منذ أسبوع", cover: "img" },
+    { show: "صنّاع التعليم", title: "المعلّم الرقمي: بين الحماس والإرهاق", dur: "41:05", date: "منذ أسبوعين", cover: "img" },
+    { show: "صباح EduNews", title: "ماذا تغيّر في نظام الثانوية العامة هذا العام؟", dur: "09:48", date: "أمس", cover: "brand" }
+] %}
+
+    <section class="mb-5 podcast-section">
+        {{ sectionHead("بودكاست اديونيوز") }}
+
+        <div class="pod-layout">
+
+            <!-- Featured / lead episode -->
+            <article class="pod-lead">
+                <img class="pod-lead-img" src="/assets/img/placeholder.png" alt="غلاف الحلقة">
+                <span class="pod-badge"><i class="bi bi-stars"></i>حلقة مميزة</span>
+                <a href="{{ podLead.url }}" class="pod-play pod-play-lg" aria-label="تشغيل الحلقة"><i class="bi bi-play-fill"></i></a>
+
+                <div class="pod-lead-body">
+                    <p class="pod-show">{{ podLead.show }} <span>·</span> {{ podLead.ep }}</p>
+                    <h3 class="pod-lead-title"><a href="{{ podLead.url }}">{{ podLead.title }}</a></h3>
+                    <div class="pod-lead-meta">
+                        <span><i class="bi bi-clock"></i> <span dir="ltr">{{ podLead.dur }}</span></span>
+                        <span><i class="bi bi-calendar3"></i> {{ podLead.date }}</span>
+                    </div>
+                    <div class="podcast-listen">
+                        <a href="{{ podLead.url }}" class="podcast-btn podcast-btn-solid"><i class="bi bi-play-fill"></i> استمع الآن</a>
+                        <span class="pod-listen-gap"></span>
+                        <a href="#" class="platform platform-apple" aria-label="Apple Podcasts"><i class="bi bi-mic-fill"></i></a>
+                        <a href="#" class="platform platform-spotify" aria-label="Spotify"><i class="bi bi-spotify"></i></a>
+                        <a href="#" class="platform platform-anghami" aria-label="Anghami"><i class="bi bi-music-note-beamed"></i></a>
+                        <a href="#" class="platform platform-youtube" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Latest episodes grid (2 x 2) -->
+            <div class="pod-grid">
+                {% for ep in podEpisodes %}
+                <article class="pod-card">
+                    <div class="pod-card-cover{% if ep.cover == 'brand' %} podcast-cover-brand{% endif %}">
+                        {% if ep.cover == 'brand' %}
+                            <span class="pc-title">صباح<br>EduNews</span>
+                        {% else %}
+                            <img src="/assets/img/placeholder.png" alt="غلاف الحلقة" loading="lazy">
+                        {% endif %}
+                        <a href="#" class="pod-play" aria-label="تشغيل الحلقة"><i class="bi bi-play-fill"></i></a>
+                    </div>
+                    <div class="pod-card-body">
+                        <p class="pod-show pod-show-sm">{{ ep.show }}</p>
+                        <h3 class="pod-card-title"><a href="#">{{ ep.title }}</a></h3>
+                        <p class="pod-card-date"><span dir="ltr">{{ ep.dur }}</span> · {{ ep.date }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+
+        </div>
+    </section>
+
+
+   
+
+    <!-- ==========================================
+         SECTION 3: MAIN NEWS FEED GRID
+         ========================================== -->
+{#
+  Wired to homeData.articlesReports: the newest Opinion / Editorial and In-Depth Report stories
+  (6 max), except stories flagged for Policy Watch or Investment, which stay in those blocks.
+  homeData.js reserves these for this grid, so they never repeat in the hero, Today's Picks
+  or any other block. Hidden when there are none.
+#}
+{% if homeData.articlesReports and homeData.articlesReports.length %}
+    <section class="news-grid mb-5">
+        {{ sectionHead("مقالات وتقارير", url="/ar/مقالات-وتقارير/") }}
+
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            {% for item in homeData.articlesReports.slice(0, 6) %}
+            <div class="col">
+                <article class="news-card">
+                    <div class="ratio ratio-16x9 news-card-image">
+                        <img src="{{ item.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ item.imageAlt or item.title }}">
+                    </div>
+                    <div class="news-card-body">
+                        <span class="badge-category-sm">{{ item.category.title_ar or item.category.title_en }}</span>
+                        <h3><a href="{{ item.url }}">{{ item.title }}</a></h3>
+                        <p>{{ item.summary }}</p>
+                    </div>
+                </article>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+{% endif %}
+
+
+
+    <!-- ==========================================
+         SECTION 4: ONE-COLUMN ALIGNED (Most Read)
+         ========================================== -->
+    <section class="row g-4 mb-5">
+        <div class="col-12">
+            {# TODO: fully static — no schema exists yet for this section's content. #}
+            {{ sectionHead("الأكثر قراءة") }}
+            <div class="most-read-list">
+                <article class="most-read-item">
+                    <span class="mr-number">1</span>
+                    <div class="ratio ratio-1x1 mr-thumb">
+                        <img src="/assets/img/placeholder.png" alt="thumb">
+                    </div>
+                    <div class="mr-body">
+                        <span class="badge-category-sm">تعليم عالي</span>
+                        <h4><a href="#">أكثر قصة قراءة هذا الأسبوع حول تحديثات القبول الجامعي.</a></h4>
+                    </div>
+                </article>
+                <article class="most-read-item">
+                    <span class="mr-number">2</span>
+                    <div class="ratio ratio-1x1 mr-thumb">
+                        <img src="/assets/img/placeholder.png" alt="thumb">
+                    </div>
+                    <div class="mr-body">
+                        <span class="badge-category-sm">منح دراسية</span>
+                        <h4><a href="#">قصة ثانية الأكثر تفاعلًا حول فرص المنح الجديدة.</a></h4>
+                    </div>
+                </article>
+                <article class="most-read-item">
+                    <span class="mr-number">3</span>
+                    <div class="ratio ratio-1x1 mr-thumb">
+                        <img src="/assets/img/placeholder.png" alt="thumb">
+                    </div>
+                    <div class="mr-body">
+                        <span class="badge-category-sm">تكنولوجيا التعليم</span>
+                        <h4><a href="#">قصة ثالثة الأكثر مشاهدة حول أدوات الذكاء الاصطناعي بالفصول.</a></h4>
+                    </div>
+                </article>
+            </div>
+        </div>
+    </section>
+
+</div>
+    </section>   {# end of "Most Read" #}
+
+</div>           {# end of <div class="container my-4"> #}
+
+{% set sponsorsLang = "ar" %}
+{% include "partials/sponsors.njk" %}

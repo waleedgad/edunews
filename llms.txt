@@ -1,0 +1,9 @@
+# EduNews
+> Education media, market intelligence, and institutional directory for Egypt, the Gulf, and Morocco.
+
+## Editorial Desks
+- [Higher Education](/news/higher-ed/): University rankings, research developments, and academic governance.
+- [K-12 & International Schools](/news/schools/): National curriculum updates, Thanawya Amma regulations, and tuition fees.
+- [Ministry & Policy](/news/policy/): Official decrees, legal frameworks, and regulatory reforms.
+- [EdTech & Innovation](/news/edtech/): Classroom technology, AI tools, and startup developments.
+- [Admissions & Opportunities](/opportunities/): Funded scholarships, university open days, and student guides.

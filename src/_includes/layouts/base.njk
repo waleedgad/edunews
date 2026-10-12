@@ -1,0 +1,183 @@
+{% set currentLang = lang or section.lang or article.language or category.language or author.language or topic.language or language or 'ar' %}
+<!DOCTYPE html>
+<html lang="{{ currentLang }}" dir="{{ 'ltr' if currentLang == 'en' else 'rtl' }}">
+<head>
+
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-3X2XTCJMMY"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-3X2XTCJMMY');
+</script>
+
+<script type="text/javascript">
+    (function(c,l,a,r,i,t,y){
+        c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+        t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+        y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+    })(window, document, "clarity", "script", "yslnb4ox2g");
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {# Determine target language and fallback home URL #}
+    {% set targetLang = 'en' if currentLang == 'ar' else 'ar' %}
+    {% set targetHome = '/en/' if targetLang == 'en' else '/' %}
+    
+    {# Use explicit translation if available, otherwise fallback to home #}
+    {% set finalTranslationUrl = section.translationUrl if section.translationUrl else targetHome %}
+    
+    <meta data-translation-url-meta="{{ finalTranslationUrl }}">
+    {# ---------- SEO / Open Graph (site-wide defaults live in src/_data/site.js) ---------- #}
+    {% set siteLang = site[currentLang] or site.ar %}
+    {# Page title: ONE format for every page, "<page title> | <site name>" (site name = Site Settings in Sanity).
+       Any site name already typed into a page's own title ("EduNews | X", "X | EduNews", "<site> - X") is removed first,
+       so a template never needs to add it. A page with no title shows the site default. #}
+    {% set siteName = siteLang.name %}
+    {% set rawTitle = ogTitle or title or article.title or '' %}
+    {% set cleanTitle = rawTitle | replace('EduNews | ', '') | replace(' | EduNews', '')
+                        | replace(siteName ~ ' | ', '') | replace(' | ' ~ siteName, '')
+                        | replace(siteName ~ ' - ', '') | replace(' - ' ~ siteName, '') | trim %}
+    {% set pageTitle = siteLang.defaultTitle if (not cleanTitle or cleanTitle == siteName) else (cleanTitle ~ ' | ' ~ siteName) %}
+    {% set shareTitle = cleanTitle or siteLang.defaultTitle %}
+    {% set pageDesc = ogDescription or description or article.summary or section.description or category.description or siteLang.description %}
+    {% set pageImage = ogImage or article.imageUrl or site.defaultImage %}
+    {% set pageImageAbs = pageImage if pageImage.startsWith('http') else site.url + pageImage %}
+    {% set pageType = ogType or ('article' if article else 'website') %}
+    {% set pageUrl = site.url + page.url %}
+
+    <title>{{ pageTitle }}</title>
+    <meta name="description" content="{{ pageDesc | striptags | truncate(200) }}">
+    <link rel="canonical" href="{{ pageUrl }}">
+
+    <!-- Icons / brand color (from Sanity Site Settings) -->
+    {% if site.favicon32 %}
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ site.favicon32 }}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{{ site.favicon192 }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ site.appleTouchIcon }}">
+    {% endif %}
+    {% if site.themeColor %}<meta name="theme-color" content="{{ site.themeColor }}">{% endif %}
+    {% if section.translationUrl %}
+    <link rel="alternate" hreflang="{{ 'ar' if currentLang == 'en' else 'en' }}" href="{{ section.translationUrl if section.translationUrl.startsWith('http') else site.url + section.translationUrl }}">
+    <link rel="alternate" hreflang="{{ currentLang }}" href="{{ pageUrl }}">
+    {% endif %}
+
+    <!-- Open Graph -->
+    <meta property="og:site_name" content="{{ siteLang.name }}">
+    <meta property="og:type" content="{{ pageType }}">
+    <meta property="og:title" content="{{ shareTitle }}">
+    <meta property="og:description" content="{{ pageDesc | striptags | truncate(200) }}">
+    <meta property="og:url" content="{{ pageUrl }}">
+    <meta property="og:image" content="{{ pageImageAbs }}">
+    <meta property="og:image:alt" content="{{ ogImageAlt or article.imageAlt or pageTitle }}">
+    <meta property="og:locale" content="{{ siteLang.locale }}">
+    {% if pageType == 'article' and article.date %}<meta property="article:published_time" content="{{ article.date }}">{% endif %}
+
+    <!-- Twitter / X -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="{{ shareTitle }}">
+    <meta name="twitter:description" content="{{ pageDesc | striptags | truncate(200) }}">
+    <meta name="twitter:image" content="{{ pageImageAbs }}">
+    {% if site.twitter %}<meta name="twitter:site" content="{{ site.twitter }}">{% endif %}
+
+    <!-- Structured data: tells Google your logo and social profiles -->
+    {% set orgLd = { "@context": "https://schema.org", "@type": "NewsMediaOrganization", "name": siteLang.name, "url": site.url, "logo": site.logo, "sameAs": site.sameAs } %}
+    <script type="application/ld+json">{{ orgLd | dump | safe }}</script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Merriweather:wght@400;700&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS -->
+    <link href="/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
+    <link href="/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
+    <link href="/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+
+    <!-- Main CSS -->
+    <link href="/assets/css/main.css" rel="stylesheet">
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+
+    {% if currentLang == 'en' %}
+      {% include "../../assets/partials/header-en.html" %}
+    {% else %}
+      {% include "../../assets/partials/header-ar.html" %}
+    {% endif %}
+
+    <!-- Page Content -->
+    {# Search (Pagefind): pages are NOT indexed by default. Only the article layouts set data-pagefind-body,
+         so results are stories only (no home, section, tag or author pages). A page can opt in with pagefindBody: true. #}
+    <main class="flex-grow-1" {% if pagefindBody %}data-pagefind-body{% endif %}>
+        <span hidden data-pagefind-filter="lang[data-lang]" data-lang="{{ currentLang }}"></span>
+        {{ content | safe }}
+    </main>
+
+    <!-- Newsletter CTA -->
+    <section class="newsletter-cta">
+        <div class="container text-center">
+            {% if currentLang == 'en' %}
+                <h2>Stay Updated</h2>
+                <p>Join thousands of subscribers and get top educational news delivered every morning.</p>
+                <form class="newsletter-form" onsubmit="return false;">
+                    <input type="email" placeholder="Your email address" required>
+                    <button type="submit">Subscribe</button>
+                </form>
+            {% else %}
+                <h2>ابقَ على اطلاع دائم</h2>
+                <p>انضم لآلاف المشتركين واحصل على أهم أخبار التعليم في بريدك كل صباح.</p>
+                <form class="newsletter-form" onsubmit="return false;">
+                    <input type="email" placeholder="بريدك الإلكتروني" required>
+                    <button type="submit">اشتراك</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    {% if currentLang == 'en' %}
+      {% include "../../assets/partials/footer-en.html" %}
+    {% else %}
+      {% include "../../assets/partials/footer-ar.html" %}
+    {% endif %}
+
+    <!-- Vendor JS -->
+    <script src="/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/assets/vendor/glightbox/js/glightbox.min.js"></script>
+    <script src="/assets/vendor/swiper/swiper-bundle.min.js"></script>
+    <script src="/assets/vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
+    <script src="/assets/vendor/isotope-layout/isotope.pkgd.min.js"></script>
+    <script src="/assets/vendor/waypoints/noframework.waypoints.js"></script>
+    <script src="/assets/vendor/purecounter/purecounter_vanilla.js"></script>
+    <script src="/assets/vendor/typed.js/typed.umd.js"></script>
+
+    <!-- Main JS -->
+    <script src="/assets/js/main.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var dateEl = document.getElementById('todayDate');
+            if (dateEl) {
+                var today = new Date();
+                var locale = '{{ currentLang }}' === 'en' ? 'en-US' : 'ar-EG';
+                dateEl.textContent = today.toLocaleDateString(locale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+
+            if (typeof Swiper !== 'undefined' && document.querySelector('.latest-swiper')) {
+                new Swiper('.latest-swiper', {
+                    slidesPerView: 1.2,
+                    spaceBetween: 16,
+                    breakpoints: {
+                        576: { slidesPerView: 2.2 },
+                        992: { slidesPerView: 4 }
+                    }
+                });
+            }
+        });
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

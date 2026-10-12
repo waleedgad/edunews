@@ -1,0 +1,10 @@
+---
+pagination:
+  data: topics
+  size: 1
+  alias: topic
+permalink: "/{{ topic.language }}/tag/{{ topic.slug }}/index.html"
+layout: "layouts/topic-feed.njk"
+eleventyComputed:
+  title: "{{ topic.title_ar if topic.language == 'ar' else topic.title_en }} | EduNews"
+---

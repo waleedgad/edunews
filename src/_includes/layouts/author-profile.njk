@@ -1,0 +1,152 @@
+---
+layout: "layouts/base.njk"
+---
+{# ---------- Localised values (no cross-language fallback, except name) ---------- #}
+{% set isAr = author.language == 'ar' %}
+{% set displayName = author.name or (author.name_ar if isAr else author.name_en) %}
+{% set role = author.role_ar if isAr else author.role_en %}
+{% set bio = author.bio_ar if isAr else author.bio_en %}
+{% set credentials = author.credentials_ar if isAr else author.credentials_en %}
+{% set expertise = author.expertise_ar if isAr else author.expertise_en %}
+
+{# ---------- Collect this author's articles in this language, newest first ---------- #}
+{% set matched = [] %}
+{% for article in articles %}
+  {% if article.author.slug == author.slug and article.language == author.language %}
+    {% set _ = matched.push(article) %}
+  {% endif %}
+{% endfor %}
+{% set authorArticles = matched | sort(true, false, 'publishedAt') %}
+{% set articleCount = authorArticles | length %}
+{% set latest = authorArticles | first %}
+{% set earliest = authorArticles | last %}
+
+{# ---------- Verified profiles (also feed the structured data below) ---------- #}
+{% set sameAs = [] %}
+{% if author.linkedin %}{% set _ = sameAs.push(author.linkedin) %}{% endif %}
+{% if author.twitter %}{% set _ = sameAs.push('https://x.com/' + (author.twitter | replace('@', ''))) %}{% endif %}
+{% if author.website %}{% set _ = sameAs.push(author.website) %}{% endif %}
+
+<div class="feed-page author-page" lang="{{ author.language }}">
+
+  <!-- ===== Profile panel: identity + bio | track record + links ===== -->
+  <header class="au-profile">
+
+    <div class="au-main">
+      <div class="au-identity">
+        {% if author.avatarUrl %}
+          <img src="{{ author.avatarUrl }}?w=288&h=288&fit=crop&auto=format"
+               alt="{{ displayName }}" width="144" height="144" class="au-avatar">
+        {% else %}
+          <span class="au-avatar au-avatar-initial" aria-hidden="true">{{ displayName | first }}</span>
+        {% endif %}
+
+        <div class="au-identity-text">
+          <span class="au-eyebrow">{{ 'كاتب في إديو نيوز' if isAr else 'Author at EduNews' }}</span>
+          <h1 class="au-name">{{ displayName }}</h1>
+          {% if role %}<p class="au-role">{{ role }}</p>{% endif %}
+        </div>
+      </div>
+
+      {% if credentials %}
+        <p class="au-credentials">{{ credentials }}</p>
+      {% endif %}
+
+      {% if bio %}
+        <p class="au-bio">{{ bio }}</p>
+      {% endif %}
+
+      {% if expertise and expertise.length %}
+        <div class="au-expertise">
+          <h2 class="au-label">{{ 'مجالات الخبرة' if isAr else 'Areas of expertise' }}</h2>
+          <ul class="au-chips">
+            {% for topic in expertise %}<li class="au-chip">{{ topic }}</li>{% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+    </div>
+
+    <aside class="au-aside">
+      <h2 class="au-label">{{ 'السجل التحريري' if isAr else 'Track record' }}</h2>
+      <dl class="au-stats">
+        <div class="au-stat">
+          <dt>{{ 'مقال منشور' if isAr else 'Articles published' }}</dt>
+          <dd>{{ articleCount }}</dd>
+        </div>
+        {% if earliest %}
+          <div class="au-stat">
+            <dt>{{ 'يكتب معنا منذ' if isAr else 'Writing here since' }}</dt>
+            <dd>{{ earliest.publishedAt | truncate(4, true, "") }}</dd>
+          </div>
+        {% endif %}
+        {% if latest %}
+          <div class="au-stat">
+            <dt>{{ 'أحدث مقال' if isAr else 'Latest article' }}</dt>
+            <dd><time datetime="{{ latest.publishedAt }}">{{ latest.publishedAt | truncate(10, true, "") }}</time></dd>
+          </div>
+        {% endif %}
+      </dl>
+
+      {% if sameAs.length or author.email %}
+        <h2 class="au-label au-label-spaced">{{ 'تواصل' if isAr else 'Connect' }}</h2>
+        <nav class="au-links" aria-label="{{ 'روابط الكاتب' if isAr else 'Author links' }}">
+          {% if author.linkedin %}<a href="{{ author.linkedin }}" rel="me noopener" target="_blank"><i class="bi bi-linkedin" aria-hidden="true"></i> LinkedIn</a>{% endif %}
+          {% if author.twitter %}<a href="https://x.com/{{ author.twitter | replace('@', '') }}" rel="me noopener" target="_blank"><i class="bi bi-twitter-x" aria-hidden="true"></i> X</a>{% endif %}
+          {% if author.website %}<a href="{{ author.website }}" rel="me noopener" target="_blank"><i class="bi bi-globe" aria-hidden="true"></i> {{ 'الموقع' if isAr else 'Website' }}</a>{% endif %}
+          {% if author.email %}<a href="mailto:{{ author.email }}"><i class="bi bi-envelope" aria-hidden="true"></i> {{ 'البريد' if isAr else 'Email' }}</a>{% endif %}
+        </nav>
+      {% endif %}
+    </aside>
+  </header>
+
+  <!-- ===== Articles ===== -->
+  <section class="au-articles" aria-labelledby="au-articles-title">
+    <div class="sec-head">
+      <h2 class="sec-head-title" id="au-articles-title">{{ ('مقالات ' + displayName) if isAr else ('Articles by ' + displayName) }}</h2>
+      <span class="au-count">{{ articleCount }}</span>
+    </div>
+
+    <div class="feed-grid">
+      {% for article in authorArticles %}
+        <div class="feed-item">
+          <div class="feed-card">
+            {% if article.imageUrl %}
+              <img src="{{ article.imageUrl }}" class="feed-card-image" alt="{{ article.title }}" loading="lazy">
+            {% endif %}
+
+            <div class="feed-card-body">
+              <small class="feed-card-date"><time datetime="{{ article.publishedAt }}">{{ article.publishedAt | truncate(10, true, "") }}</time></small>
+              <h3 class="feed-card-title">{{ article.title }}</h3>
+              <p class="feed-card-summary">{{ article.summary | truncate(120) }}</p>
+
+              <div class="feed-card-footer">
+                <a href="{{ article.permalink }}" class="feed-card-link">{{ 'اقرأ المزيد' if isAr else 'Read More' }}</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+
+      {% if articleCount == 0 %}
+        <div class="feed-empty">
+          <p class="feed-empty-text">{{ 'لا توجد مقالات لهذا الكاتب حالياً.' if isAr else 'No articles currently published by this author.' }}</p>
+        </div>
+      {% endif %}
+    </div>
+  </section>
+</div>
+
+{# ---------- Structured data: lets search engines treat this as a real author entity ---------- #}
+{% set personLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": displayName,
+  "jobTitle": role,
+  "description": bio,
+  "image": author.avatarUrl,
+  "url": (site.url or '') + page.url,
+  "worksFor": { "@type": "Organization", "name": "EduNews" },
+  "knowsAbout": expertise,
+  "sameAs": sameAs
+} %}
+<script type="application/ld+json">{{ personLd | dump | replace('<', '\\u003c') | safe }}</script>

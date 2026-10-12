@@ -1,0 +1,167 @@
+{#
+  VERTICAL PAGE: "default" template (Sanity vertical with Page layout = default).
+
+  Wired to verticalData (src/_data/verticalData.js). The key is "<lang>/<slug>" of
+  the vertical, e.g. verticalData["en/classroom"].
+    items[0]          lead story (large card)
+    items[1..2]       two stacked side cards
+    items[3..]        "Latest Articles" feed
+    picks             sidebar list: Featured stories of the vertical, else the newest
+  Newsletter box and ad units stay static. With no stories the page shows a
+  "no stories yet" message instead of the hero and feed.
+#}
+{% set secKey = vertical.lang ~ '/' ~ vertical.slug %}
+{% set sd = verticalData[secKey] %}
+{% set items = sd.articles if sd else [] %}
+{% set picks = sd.picks if sd else [] %}
+{% set lead = items[0] %}
+{% set subs = items.slice(1, 3) %}
+{% set feed = items.slice(3) %}
+
+<section class="news-article category-section grid-layout">
+  <div class="article-container">
+
+    <!-- Top Leaderboard Ad -->
+    <div class="ad-unit ad-leaderboard">
+      <span class="ad-label">{% if vertical.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+      <div class="ad-container">
+        <span class="ad-placeholder-text">{% if vertical.lang == 'ar' %}إعلان 728x90{% else %}ADVERTISEMENT 728x90{% endif %}</span>
+      </div>
+    </div>
+
+    <!-- Category Header & Description -->
+    <header class="sec-head sec-head-hero" style="margin-bottom: 24px;">
+      <div class="sec-head-content">
+        <h1 class="sec-head-title">{{ vertical.title }}</h1>
+        {% if vertical.description %}
+          <p class="sec-head-desc" style="color: #666; margin-top: 8px; font-size: 1.05rem;">
+            {{ vertical.description }}
+          </p>
+        {% endif %}
+      </div>
+      
+    </header>
+
+    {% if lead %}
+    <!-- 1. Top Hero Grid (1 Large Lead + up to 2 Secondary Cards) -->
+    <div class="hero-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-bottom: 40px;">
+
+      <!-- Dominant Main Feature -->
+      <article class="hero-lead-card" style="grid-column: span 2;">
+        <a href="{{ lead.url }}" class="story-media ratio-16x9" style="display: block; overflow: hidden; border-radius: 8px; margin-bottom: 16px;">
+          <img src="{{ lead.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ lead.imageAlt or lead.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </a>
+        <span class="pick-tag">{{ lead.tag }}</span>
+        <h2 style="font-size: 1.75rem; font-weight: 800; margin: 8px 0; line-height: 1.3;">
+          <a href="{{ lead.url }}" style="text-decoration: none; color: inherit;">{{ lead.title }}</a>
+        </h2>
+        {% if lead.summary %}
+        <p class="story-excerpt" style="color: #555; line-height: 1.6;">{{ lead.summary }}</p>
+        {% endif %}
+      </article>
+
+      <!-- Side Stacked Features -->
+      {% if subs.length %}
+      <div class="hero-sub-cards" style="display: flex; flex-direction: column; gap: 24px;">
+        {% for s in subs %}
+        <article class="sub-card">
+          <a href="{{ s.url }}" class="story-media ratio-3x2" style="display: block; overflow: hidden; border-radius: 6px; margin-bottom: 12px;">
+            <img src="{{ s.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ s.imageAlt or s.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+          </a>
+          <span class="pick-tag">{{ s.tag }}</span>
+          <h3 style="font-size: 1.1rem; font-weight: 700; margin-top: 6px;">
+            <a href="{{ s.url }}" style="text-decoration: none; color: inherit;">{{ s.title }}</a>
+          </h3>
+        </article>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+    </div>
+    {% else %}
+    <p class="category-empty" style="color: #666; margin: 40px 0; font-size: 1.05rem;">
+      {% if vertical.lang == 'ar' %}لا توجد مقالات في هذا القسم بعد.{% else %}No stories in this vertical yet.{% endif %}
+    </p>
+    {% endif %}
+
+    <!-- 2. Main Content Grid + Sidebar Layout -->
+    <div class="article-layout">
+
+      <!-- Main Column: 2-Column Article Card Feed -->
+      <main class="article-main">
+
+        {% if feed.length %}
+        <div class="sec-head" style="margin-bottom: 24px;">
+          <h3 class="sec-head-title" style="font-size: 1.25rem;">
+            {% if vertical.lang == 'ar' %}أحدث المقالات{% else %}Latest Articles{% endif %}
+          </h3>
+        </div>
+
+        <div class="feed-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
+          {% for a in feed %}
+          <article class="story-card" style="display: flex; flex-direction: column;">
+            <a href="{{ a.url }}" class="story-media ratio-3x2" style="border-radius: 6px; overflow: hidden; margin-bottom: 12px;">
+              <img src="{{ a.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ a.imageAlt or a.title }}">
+            </a>
+            <span class="pick-tag">{{ a.tag }}</span>
+            <h4 style="font-size: 1.05rem; font-weight: 700; margin: 8px 0;">
+              <a href="{{ a.url }}">{{ a.title }}</a>
+            </h4>
+            {% if a.summary %}
+            <p class="story-excerpt" style="font-size: 0.88rem; color: #666;">{{ a.summary }}</p>
+            {% endif %}
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="article-sidebar">
+        <div class="sticky-sidebar">
+
+          <!-- Newsletter / Call to Action Widget (static) -->
+          <div class="sidebar-widget" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 32px;">
+            <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">
+              {% if vertical.lang == 'ar' %}النشرة البريدية{% else %}Newsletter{% endif %}
+            </h4>
+            <p style="font-size: 0.88rem; color: #666; margin-bottom: 16px;">
+              {% if vertical.lang == 'ar' %}اشترك للحصول على أحدث الأخبار والتحليلات مباشرة إلى بريدك.{% else %}Subscribe to receive the latest updates directly in your inbox.{% endif %}
+            </p>
+            <input type="email" placeholder="{% if vertical.lang == 'ar' %}البريد الإلكتروني{% else %}Email address{% endif %}" style="width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            <button class="pill-btn" style="width: 100%; text-align: center;">{% if vertical.lang == 'ar' %}اشترك{% else %}Subscribe{% endif %}</button>
+          </div>
+
+          <!-- Top stories: Featured stories of this category, else the newest.
+               (There is no page-view data yet, so this is not a "most read" list.) -->
+          {% if picks.length %}
+          <div class="sidebar-widget" style="margin-bottom: 32px;">
+            <h4 class="section-title-sm">{% if vertical.lang == 'ar' %}أبرز الأخبار{% else %}Top Stories{% endif %}</h4>
+            <div class="most-read-list" style="margin-top: 16px;">
+              {% for p in picks %}
+              <article class="most-read-item">
+                <span class="mr-number">{{ loop.index }}</span>
+                <div class="mr-body">
+                  <h4><a href="{{ p.url }}">{{ p.title }}</a></h4>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Sticky Half-Page Ad Unit -->
+          <div class="ad-unit ad-halfpage">
+            <span class="ad-label">{% if vertical.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+            <div class="ad-container">
+              <span class="ad-placeholder-text">{% if vertical.lang == 'ar' %}إعلان 300x600{% else %}ADVERTISEMENT 300x600{% endif %}</span>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>

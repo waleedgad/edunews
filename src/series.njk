@@ -1,0 +1,189 @@
+---
+pagination:
+  data: languages
+  size: 1
+  alias: lang
+languages:
+  - ar
+  - en
+permalink: "/{{ lang }}/{{ 'السلاسل' if lang == 'ar' else 'series' }}/"
+layout: layouts/base.njk
+eleventyComputed:
+  title: "EduNews | {{ 'السلاسل المميزة' if lang == 'ar' else 'Signature Series' }}"
+---
+{#
+  SERIES PAGE (Dynamic Bilingual)
+
+  Expected data: src/_data/seriesData.js  ->  { list: [ series, ... ] }
+  (If supporting multi-lang in your JSON/JS data, use `title_ar` and `title_en` etc.)
+#}
+{% set seriesList = seriesData[lang].list or seriesData.list or [
+    {
+        slug: "technical-education", 
+        title_ar: "التعليم الفني والتكنولوجي", 
+        title_en: "Technical & Vocational Education",
+        desc_ar: "من الفجوة بين المدرسة وسوق العمل إلى نماذج الشراكة مع القطاع الخاص: ملف متواصل عن مستقبل التعليم الفني.",
+        desc_en: "From the school-to-work gap to private sector partnerships: an ongoing series on the future of vocational education.",
+        articles: [
+            { title_ar: "لماذا يتردد أولياء الأمور في اختيار المدارس الفنية؟", title_en: "Why do parents hesitate to choose vocational schools?", summary_ar: "قراءة في الصورة الذهنية وأثرها على أعداد الملتحقين.", summary_en: "Analyzing the mental image and its impact on enrollment.", date_ar: "منذ يومين", date_en: "2 days ago", category: { title_ar: "تعليم فني", title_en: "Vocational" } },
+            { title_ar: "مدارس التكنولوجيا التطبيقية: ماذا تغيّر في ثلاث سنوات؟", title_en: "Applied Tech Schools: What changed in 3 years?", date_ar: "منذ أسبوع", date_en: "1 week ago" },
+            { title_ar: "كيف تصنع الشراكة مع المصانع مهارة حقيقية؟", title_en: "How factory partnerships build real skills?", date_ar: "منذ أسبوعين", date_en: "2 weeks ago" },
+            { title_ar: "المعلم الفني: من يُدرّب المدرّب؟", title_en: "Vocational Teachers: Who trains the trainers?", date_ar: "منذ شهر", date_en: "1 month ago" }
+        ]
+    },
+    {
+        slug: "ai-in-class", 
+        title_ar: "الذكاء الاصطناعي في الفصل", 
+        title_en: "AI in the Classroom",
+        desc_ar: "أدوات وسياسات وتجارب حقيقية من المدارس والجامعات التي بدأت تُدخل الذكاء الاصطناعي إلى التعليم.",
+        desc_en: "Tools, policies, and real experiments from schools and universities integrating AI into education.",
+        articles: [
+            { title_ar: "هل يكتب الطالب واجبه أم يكتبه الروبوت؟", title_en: "Did the student or the robot write the homework?", summary_ar: "المدارس تعيد تعريف الأمانة الأكاديمية.", summary_en: "Schools are redefining academic integrity.", date_ar: "اليوم", date_en: "Today", category: { title_ar: "تكنولوجيا التعليم", title_en: "EdTech" } },
+            { title_ar: "مساعد المعلم الذكي: وفر وقتًا أم أضاف عبئًا؟", title_en: "Smart Teacher Assistant: Time saver or burden?", date_ar: "منذ 3 أيام", date_en: "3 days ago" },
+            { title_ar: "دليل المدرسة لسياسة استخدام الأدوات التوليدية", title_en: "School guide for generative tools policy", date_ar: "منذ أسبوع", date_en: "1 week ago" }
+        ]
+    }
+] %}
+
+{# Series colour: explicit tone, else cycle through the four :root palette tokens #}
+{% macro tone(s, i) %}{{ s.tone or ('var(--series-' ~ ((i % 4) + 1) ~ ')') }}{% endmacro %}
+
+{# Dynamic Arrow Direction based on language RTL/LTR #}
+{% set arrowDir = 'bi-arrow-left' if lang == 'ar' else 'bi-arrow-right' %}
+
+<div class="container my-4">
+
+{% if seriesList and seriesList.length %}
+<section class="sig mb-5" aria-labelledby="series-heading">
+
+    <header class="sig-head">
+        <div class="sig-head-text">
+            <span class="sig-eyebrow">EduNews</span> · {{ 'ملف خاص' if lang == 'ar' else 'Special Feature' }}
+            <h2 class="sig-heading" id="series-heading">{{ 'السلاسل المميزة' if lang == 'ar' else 'Signature Series' }}</h2>
+        </div>
+        <a href="/{{ lang }}/" class="sig-more">{{ 'الرئيسية' if lang == 'ar' else 'Home' }} <i class="bi {{ arrowDir }}"></i></a>
+    </header>
+
+    {# Series picker #}
+    <div class="sig-row">
+        {% for s in seriesList %}
+        {% set s_title = s['title_' ~ lang] or s.title %}
+        {% set s_desc = s['desc_' ~ lang] or s.description %}
+        
+        <a href="#series-{{ s.slug }}" class="sig-panel sig-panel--tone{% if loop.first %} is-active{% endif %}" style="--tone: {{ tone(s, loop.index0) }}">
+            {% if s.imageUrl %}
+            <img class="sig-panel-img" src="{{ s.imageUrl }}" alt="" loading="lazy">
+            {% endif %}
+            <span class="sig-panel-no" aria-hidden="true"></span>
+            <span class="sig-panel-label" aria-hidden="true">{{ s_title }}</span>
+            <div class="sig-panel-body">
+                <span class="sig-brand">
+                    <span class="sig-brand-main">Edu<span>News</span></span>
+                    <span class="sig-brand-sub">{{ 'سلسلة' if lang == 'ar' else 'Series' }}</span>
+                </span>
+                <h3 class="sig-panel-title">{{ s_title }}</h3>
+                <p class="ser-panel-desc">{{ s_desc }}</p>
+                <span class="sig-panel-cta">{{ s.articles.length }} {{ 'مقالات' if lang == 'ar' else 'Articles' }} <i class="bi bi-arrow-down"></i></span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<!-- ==========================================
+     EACH SERIES + ITS ARTICLES
+     ========================================== -->
+<div class="ser-list">
+    {% for s in seriesList %}
+    {% set s_title = s['title_' ~ lang] or s.title %}
+    {% set s_desc = s['desc_' ~ lang] or s.description %}
+    {% set arts = s.articles or [] %}
+    
+    <section class="ser" id="series-{{ s.slug }}" aria-labelledby="ser-title-{{ s.slug }}" style="--tone: {{ tone(s, loop.index0) }}">
+
+        <header class="ser-head">
+            <span class="ser-no" aria-hidden="true"></span>
+            <div class="ser-head-text">
+                <span class="ser-kicker">{{ 'سلسلة' if lang == 'ar' else 'Series' }} · {{ arts.length }} {{ 'مقالات' if lang == 'ar' else 'Articles' }}</span>
+                <h2 class="ser-title" id="ser-title-{{ s.slug }}">{{ s_title }}</h2>
+                {% if s_desc %}<p class="ser-desc">{{ s_desc }}</p>{% endif %}
+            </div>
+            {% set seriesUrl = '/' ~ lang ~ '/' ~ ('السلاسل' if lang == 'ar' else 'series') ~ '/' ~ s.slug ~ '/' %}
+            <a href="{{ s.url or seriesUrl }}" class="sig-more">{{ 'كل المقالات' if lang == 'ar' else 'All Articles' }} <i class="bi {{ arrowDir }}"></i></a>
+        </header>
+
+        {% if arts.length %}
+        <div class="ser-body">
+
+            {# Lead article #}
+            {% set lead = arts[0] %}
+            {% set lead_title = lead['title_' ~ lang] or lead.title %}
+            {% set lead_summary = lead['summary_' ~ lang] or lead.summary %}
+            {% set lead_date = lead['date_' ~ lang] or lead.date %}
+            {% set lead_cat = lead.category['title_' ~ lang] if lead.category else null %}
+            
+            <a href="{{ lead.url or '#' }}" class="ser-lead">
+                {% if lead.imageUrl %}
+                <img class="ser-lead-img" src="{{ lead.imageUrl }}" alt="{{ lead.imageAlt or lead_title }}" loading="lazy">
+                {% endif %}
+                <span class="ser-art-no" aria-hidden="true"></span>
+                <div class="ser-lead-body">
+                    {% if lead_cat %}<span class="ser-lead-tag">{{ lead_cat }}</span>{% endif %}
+                    <h3 class="ser-lead-title">{{ lead_title }}</h3>
+                    {% if lead_summary %}<p class="ser-lead-sum">{{ lead_summary }}</p>{% endif %}
+                    {% if lead_date %}<span class="ser-meta">{{ lead_date }}</span>{% endif %}
+                </div>
+            </a>
+
+            {# The rest, as a numbered reading list #}
+            {% if arts.length > 1 %}
+            <div class="ser-items">
+                {% for a in arts.slice(1, 6) %}
+                {% set a_title = a['title_' ~ lang] or a.title %}
+                {% set a_date = a['date_' ~ lang] or a.date %}
+                
+                <article class="ser-item">
+                    <span class="ser-art-no" aria-hidden="true"></span>
+                    <div class="ser-item-text">
+                        <h3 class="ser-item-title"><a href="{{ a.url or '#' }}">{{ a_title }}</a></h3>
+                        {% if a_date %}<span class="ser-meta">{{ a_date }}</span>{% endif %}
+                    </div>
+                    {% if a.imageUrl %}
+                    <a href="{{ a.url or '#' }}" class="ser-thumb" tabindex="-1" aria-hidden="true">
+                        <img src="{{ a.imageUrl }}" alt="" loading="lazy">
+                    </a>
+                    {% endif %}
+                </article>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+        </div>
+        {% endif %}
+    </section>
+    {% endfor %}
+</div>
+
+{% else %}
+<p class="text-center my-5">{{ 'لا توجد سلاسل منشورة حاليًا.' if lang == 'ar' else 'No series currently published.' }}</p>
+{% endif %}
+
+</div>
+
+<script>
+(function () {
+    var row = document.querySelector('.sig-row');
+    if (!row) return;
+    var panels = Array.prototype.slice.call(row.querySelectorAll('.sig-panel'));
+    var touch = window.matchMedia('(hover: none)');
+    row.addEventListener('click', function (e) {
+        var p = e.target.closest('.sig-panel');
+        if (!p || !touch.matches || p.classList.contains('is-active')) return;
+        e.preventDefault();
+        panels.forEach(function (x) { x.classList.toggle('is-active', x === p); });
+    });
+})();
+</script>
+
+{% set sponsorsLang = lang %}
+{% include "partials/sponsors.njk" %}

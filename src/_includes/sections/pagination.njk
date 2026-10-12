@@ -1,0 +1,36 @@
+{#
+  Page links for a section page (included by sections/default.njk and sections/magazine.njk).
+  Data comes from sectionPages.js: section.pageNumber, section.totalPages, section.prevUrl,
+  section.nextUrl, section.pageLinks. Prints nothing when the section has a single page.
+#}
+{% if section.totalPages > 1 %}
+<nav class="section-pagination" aria-label="{% if section.lang == 'ar' %}التنقل بين الصفحات{% else %}Pagination{% endif %}">
+  {% if section.prevUrl %}
+  <a class="pg-link pg-prev" rel="prev" href="{{ section.prevUrl }}">{% if section.lang == 'ar' %}السابق{% else %}Previous{% endif %}</a>
+  {% endif %}
+
+  <ul class="pg-list">
+    {% for l in section.pageLinks %}
+      {% if l.n === null %}
+        <li class="pg-gap" aria-hidden="true">…</li>
+      {% elif l.current %}
+        <li><span class="pg-link pg-current" aria-current="page">{{ l.n }}</span></li>
+      {% else %}
+        <li><a class="pg-link" href="{{ l.url }}">{{ l.n }}</a></li>
+      {% endif %}
+    {% endfor %}
+  </ul>
+
+  {% if section.nextUrl %}
+  <a class="pg-link pg-next" rel="next" href="{{ section.nextUrl }}">{% if section.lang == 'ar' %}التالي{% else %}Next{% endif %}</a>
+  {% endif %}
+</nav>
+<style>
+  .section-pagination { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; margin: 40px 0 8px; }
+  .section-pagination .pg-list { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+  .section-pagination .pg-link { display: inline-block; min-width: 38px; padding: 8px 12px; text-align: center; border: 1px solid #ddd; border-radius: 6px; color: inherit; text-decoration: none; font-weight: 600; }
+  .section-pagination a.pg-link:hover { background: #f3f3f3; }
+  .section-pagination .pg-current { background: #111; border-color: #111; color: #fff; }
+  .section-pagination .pg-gap { padding: 8px 4px; color: #888; }
+</style>
+{% endif %}

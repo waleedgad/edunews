@@ -1,0 +1,10 @@
+---
+pagination:
+  data: categories
+  size: 1
+  alias: category
+permalink: "/{{ category.language }}/category/{{ category.slug }}/index.html"
+layout: "layouts/category-feed.njk"
+eleventyComputed:
+  title: "{{ category.title_ar if category.language == 'ar' else category.title_en }} | EduNews"
+---

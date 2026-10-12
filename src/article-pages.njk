@@ -1,0 +1,10 @@
+---
+pagination:
+  data: articles
+  size: 1
+  alias: article
+permalink: "{{ article.permalink }}"
+eleventyComputed:
+  title: "{{ article.title }} | EduNews"
+  layout: "{% if article.vertical %}layouts/article-vertical.njk{% elif article.archetype == 'editorial' or article.archetype == 'report' %}layouts/article-editorial.njk{% else %}layouts/article-news.njk{% endif %}"
+---

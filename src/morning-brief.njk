@@ -1,0 +1,277 @@
+---
+layout: "layouts/base.njk"
+pagination:
+  data: briefEditions
+  size: 1
+  alias: edition
+permalink: "{{ edition.permalink }}"
+briefEditions:
+  - lang: ar
+    dir: rtl
+    permalink: "/ar/النشرة-الصباحية/index.html"
+    otherUrl: "/en/morning-brief/"
+    title: "النشرة الصباحية"
+    description: "أهم أخبار التعليم هذا الصباح في نشرة واحدة: القرارات والجامعات والمدارس والسياسات."
+  - lang: en
+    dir: ltr
+    permalink: "/en/morning-brief/index.html"
+    otherUrl: "/ar/النشرة-الصباحية/"
+    title: "Morning Brief"
+    description: "This morning's top education stories in one brief: decisions, universities, schools and policy."
+eleventyComputed:
+  title: "{{ edition.title }} | EduNews"
+  description: "{{ edition.description }}"
+  lang: "{{ edition.lang }}"
+  language: "{{ edition.lang }}"
+  dir: "{{ edition.dir }}"
+  translationUrl: "{{ edition.otherUrl }}"
+---
+{#
+  MORNING BRIEF  (one template, two pages)
+    /ar/النشرة-الصباحية/    /en/morning-brief/
+
+  Built from the global `articles` data (articles.js), plus `morningBrief` (_data/morningBrief.js,
+  the "Morning Brief" document in Sanity Studio).
+
+  Which stories go in the brief:
+    1. The ones picked in Studio, in the order picked (first = top story). A picked story that
+       has no version in this page's language is skipped.
+    2. If nothing is picked (or the document does not exist yet), it falls back to automatic:
+       the newest article's DAY (UTC date) in that language, up to maxStories, topped up with
+       the newest older stories until minStories. The page is never empty on a slow news day.
+
+  Sponsors: the ones picked in the Morning Brief document. Only if that document does not
+  exist at all does the page use the site-wide `sponsors` data.
+
+  Switches (just below): maxStories, minStories (automatic mode only).
+    Each story prints its photo, title and whole body (like a newsletter), with no
+    links out to the article. The summary is only a fallback when a story has no body.
+
+  All styling is in main.css under "Morning Brief" (classes start with mb-).
+  main.js turns <time class="mb-date"> into a localised date (works without JS too).
+#}
+{% set L = edition.lang %}
+
+{% set maxStories = 10 %}
+{% set minStories = 5 %}
+
+{% set copy = {
+  ar: {
+    kicker: "النشرة الصباحية",
+    today: "لدينا اليوم",
+    inIssue: "في هذا العدد",
+    share: "شارك العدد",
+    cover: "الخبر الأبرز هذا الصباح",
+    empty: "لا توجد أخبار في هذا العدد بعد. عد قريبا.",
+    nav: "التنقل بين أخبار العدد",
+    sponsors: "شركاء النشرة"
+  },
+  en: {
+    kicker: "Morning Brief",
+    today: "Today's stories",
+    inIssue: "In this issue",
+    share: "Share this brief",
+    cover: "Top story this morning",
+    empty: "No stories in this brief yet. Check back soon.",
+    nav: "Jump between stories",
+    sponsors: "Brief partners"
+  }
+} %}
+{% set t = copy[L] %}
+
+{# ---------- Pick the stories ---------- #}
+{% set dayRef = [] %}
+{% for a in articles %}
+  {% if a.language == L and dayRef.length == 0 %}
+    {% set _ = dayRef.push(a.publishedAt | truncate(10, true, "")) %}
+  {% endif %}
+{% endfor %}
+
+{% set picked = morningBrief.storyIds if (morningBrief and morningBrief.storyIds) else [] %}
+{% set stories = [] %}
+{% if picked.length %}
+  {# Editor's selection, in the order chosen in Studio. Article ids here are "<sanityId>-<lang>". #}
+  {% for id in picked %}
+    {% for a in articles %}
+      {% if a._id == id + '-' + L %}
+        {% set _ = stories.push(a) %}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+{% else %}
+  {% for a in articles %}
+    {% if a.language == L
+          and stories.length < maxStories
+          and (stories.length < minStories or (a.publishedAt | truncate(10, true, "")) == dayRef[0]) %}
+      {% set _ = stories.push(a) %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+{# Issue date: the one set in Studio, else the day of the first story #}
+{% set briefDate = "" %}
+{% if morningBrief and morningBrief.issueDate %}
+  {% set briefDate = morningBrief.issueDate %}
+{% elif stories.length %}
+  {% set briefDate = stories[0].publishedAt | truncate(10, true, "") %}
+{% endif %}
+
+{# Sponsors: the Morning Brief document's own list; site-wide list only if that document is missing #}
+{% if morningBrief %}
+  {% set railItems = morningBrief.sponsors %}
+  {% set railTitle = morningBrief.sponsorsTitle[L] or t.sponsors %}
+{% else %}
+  {% set railItems = sponsors.items if (sponsors and sponsors.items) else [] %}
+  {% set railTitle = sponsors.title[L] if (sponsors and sponsors.title) else t.sponsors %}
+{% endif %}
+{% set hasRail = railItems and railItems.length %}
+
+<section class="mb-page">
+  <div class="mb-container">
+
+    <!-- Masthead -->
+    <header class="mb-masthead">
+      <p class="mb-kicker">{{ t.kicker }}</p>
+      <h1 class="mb-title">{{ edition.title }}</h1>
+      {% if briefDate %}
+        <time class="mb-date" datetime="{{ briefDate }}">{{ briefDate }}</time>
+      {% endif %}
+    </header>
+
+    {% if stories.length == 0 %}
+
+      <p class="mb-empty">{{ t.empty }}</p>
+
+    {% else %}
+
+      {% set lead = stories[0] %}
+
+      <div class="mb-layout{{ '' if hasRail else ' mb-layout--no-rail' }}">
+
+        <!-- Left: sticky jump list + share (desktop only) -->
+        <aside class="mb-side">
+          <div class="mb-side-inner">
+            <p class="mb-side-title">{{ t.inIssue }}</p>
+            <nav aria-label="{{ t.nav }}">
+              <ol class="mb-jump">
+                {% for s in stories %}
+                  <li>
+                    <a href="#story-{{ loop.index }}">
+                      <span class="mb-jump-num">{{ loop.index }}</span>
+                      <span class="mb-jump-text">{{ s.title }}</span>
+                    </a>
+                  </li>
+                {% endfor %}
+              </ol>
+            </nav>
+
+            <div class="mb-share">
+              <p class="mb-share-label">{{ t.share }}</p>
+              <div class="mb-share-row">
+                <a href="https://api.whatsapp.com/send?text={{ edition.title | urlencode }}%20{{ page.url | urlencode }}" target="_blank" rel="noopener" class="mb-share-btn" aria-label="WhatsApp"><i class="bi bi-whatsapp"></i></a>
+                <a href="https://twitter.com/intent/tweet?text={{ edition.title | urlencode }}" target="_blank" rel="noopener" class="mb-share-btn" aria-label="X"><i class="bi bi-twitter-x"></i></a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | urlencode }}" target="_blank" rel="noopener" class="mb-share-btn" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u={{ page.url | urlencode }}" target="_blank" rel="noopener" class="mb-share-btn" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                <a href="mailto:?subject={{ edition.title | urlencode }}&amp;body={{ page.url | urlencode }}" class="mb-share-btn" aria-label="Email"><i class="bi bi-envelope"></i></a>
+              </div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- Center: summary list + stories -->
+        <main class="mb-main">
+
+          <!-- Top photo only: no link, no text -->
+          {% if lead.imageUrl %}
+            <figure class="mb-cover">
+              <img src="{{ lead.imageUrl }}?w=1400&amp;auto=format" alt="{{ lead.imageAlt | default(lead.title) }}">
+            </figure>
+          {% endif %}
+
+          <section class="mb-today" aria-labelledby="mb-today-title">
+            <h2 class="mb-today-title" id="mb-today-title">{{ t.today }}</h2>
+            <ol class="mb-today-list">
+              {% for s in stories %}
+                <li class="mb-today-item">
+                  <span class="mb-num">{{ loop.index }}</span>
+                  <div class="mb-today-body">
+                    {% if loop.first %}<span class="mb-top-label">{{ t.cover }}</span>{% endif %}
+                    {% if s.category %}
+                      <span class="mb-today-cat">{{ s.category.title_ar if L == 'ar' else s.category.title_en }}</span>
+                    {% endif %}
+                    <a href="#story-{{ loop.index }}">{{ s.title }}</a>
+                  </div>
+                </li>
+              {% endfor %}
+            </ol>
+          </section>
+
+          {% for s in stories %}
+            <article class="mb-story" id="story-{{ loop.index }}">
+
+              <header class="mb-story-head">
+                <span class="mb-num">{{ loop.index }}</span>
+                {% if loop.first %}<span class="mb-top-label">{{ t.cover }}</span>{% endif %}
+                {% if s.category %}
+                  <span class="mb-story-cat">{{ s.category.title_ar if L == 'ar' else s.category.title_en }}</span>
+                {% endif %}
+                <h3 class="mb-story-title">{{ s.title }}</h3>
+              </header>
+
+              {% if s.imageUrl %}
+                <div class="mb-story-img">
+                  <img src="{{ s.imageUrl }}?w=1000&amp;auto=format" alt="{{ s.imageAlt | default('') }}" loading="lazy">
+                </div>
+              {% endif %}
+
+              {% if s.body and s.body.length %}
+                <div class="article-body-content">
+                  {{ s.body | portableText | safe }}
+                </div>
+              {% elif s.summary %}
+                <p class="mb-story-summary">{{ s.summary }}</p>
+              {% endif %}
+
+            </article>
+          {% endfor %}
+
+        </main>
+
+        <!-- Right: sponsors (only when there are some) -->
+        {% if hasRail %}
+          <aside class="mb-rail">
+            <h2 class="mb-rail-title">{{ railTitle }}</h2>
+            <ul class="mb-sponsors">
+              {% for sp in railItems %}
+                <li>
+                  <a href="{{ sp.url }}" target="_blank" rel="noopener sponsored">
+                    <img src="{{ sp.logoUrl }}" alt="{{ sp.name[L] }}" loading="lazy">
+                  </a>
+                </li>
+              {% endfor %}
+            </ul>
+          </aside>
+        {% endif %}
+
+      </div>
+
+    {% endif %}
+
+  </div>
+</section>
+
+<script>
+  /* The site header is sticky and changes height (it shrinks on scroll). Measure it so the
+     sticky jump list and anchor jumps always clear it. CSS falls back to 150px without JS. */
+  (function () {
+    var page = document.querySelector('.mb-page');
+    var header = document.querySelector('.site-header');
+    if (!page || !header) return;
+    function setOffset() {
+      page.style.setProperty('--mb-top', (header.offsetHeight + 16) + 'px');
+    }
+    setOffset();
+    window.addEventListener('resize', setOffset);
+    if (window.ResizeObserver) new ResizeObserver(setOffset).observe(header);
+  })();
+</script>

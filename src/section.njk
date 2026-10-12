@@ -1,0 +1,12 @@
+---
+pagination:
+  data: sectionPages
+  size: 1
+  alias: section
+permalink: "{{ section.permalink }}"
+layout: layouts/base.njk
+eleventyComputed:
+  title: "{{ section.title | safe }}{% if section.pageNumber > 1 %} - {% if section.lang == 'ar' %}صفحة{% else %}Page{% endif %} {{ section.pageNumber }}{% endif %}"
+  lang: "{{ section.lang }}"
+---
+{% include "sections/" + (section.template or "default") + ".njk" %}

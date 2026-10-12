@@ -1,0 +1,148 @@
+<!-- ==========================================
+     TOP UTILITY BAR
+     ========================================== -->
+<div class="top-bar d-none d-md-block">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Live Date & Time -->
+        <div class="top-bar-date d-flex align-items-center gap-2" id="todayDateEn">
+            <i class="bi bi-clock"></i> <span class="date-text"></span>
+        </div>
+
+        <!-- Utility Links & Language Switch -->
+        <div class="top-bar-links d-flex align-items-center gap-3">
+            <a href="/en/about-us/" class="top-link">About Us</a>
+            <a href="/en/contact-us/" class="top-link">Contact Us</a>
+            <a href="/" class="lang-switch badge-lang" data-translation-url>
+                <i class="bi bi-globe"></i> عربي
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MAIN HEADER
+     ========================================== -->
+<header class="site-header sticky-top" id="siteHeader">
+    <div class="container">
+        <div class="header-inner">
+
+            <!-- LEFT: Menu Toggle Button -->
+            <div class="header-left">
+                <button class="menu-toggle" type="button" aria-label="Open Menu" aria-expanded="false" aria-controls="sideDrawer" data-menu-toggle>
+                    <span class="hamburger-box">
+                        <span class="hamburger-inner"></span>
+                    </span>
+                    
+                </button>
+            </div>
+
+            <!-- CENTER: Brand Logo -->
+            <a href="/en/" class="brand">
+                <span class="brand-main">EduNews</span>
+                <span class="brand-sub">Education News</span>
+            </a>
+
+            <!-- RIGHT: Header Actions -->
+            <div class="header-actions d-flex align-items-center gap-2">
+                <button class="icon-btn search-trigger" type="button" aria-label="Search">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="/en/subscribe/" class="btn-subscribe d-none d-sm-inline-flex">Subscribe</a>
+            </div>
+        </div>
+    </div>
+
+<!-- ===== Search Panel ===== -->
+<div class="search-panel" id="searchPanel" role="search"
+     data-msg-none="No results for"
+     data-msg-error="Search is unavailable right now. Please try again later.">
+    <div class="container">
+        <div class="search-box">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" class="search-input" id="searchInput"
+                   placeholder="Search news and reports…" aria-label="Search"
+                   autocomplete="off" enterkeyhint="search">
+            <button type="button" class="search-close" aria-label="Close search">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="search-results" aria-live="polite"></div>
+    </div>
+</div>
+
+
+    <!-- SECOND ROW: Main Horizontal Nav (Desktop) -->
+    <div class="header-nav-row d-none d-lg-block">
+        <div class="container">
+            <nav class="primary-nav" aria-label="Main Navigation">
+                <ul class="nav-list d-flex justify-content-between m-0 p-0 list-unstyled">
+                    <li><a href="/en/" class="nav-link">Home</a></li>
+                    <li><a href="/en/schools/" class="nav-link">Schools</a></li>
+                    <li><a href="/en/universities/" class="nav-link">Universities</a></li>
+                    <li><a href="/en/technical-and-technological-education/" class="nav-link">TVET</a></li>
+                    <li><a href="/en/policies-and-decisions/" class="nav-link">Policies &amp; Decisions</a></li>
+                    <li><a href="/en/articles-and-reports/" class="nav-link">Articles &amp; Reports</a></li>
+                    <li><a href="/en/education-economy-and-investment/" class="nav-link">Economy &amp; Investment</a></li>
+                    <li><a href="/en/schools-and-universities-directory/" class="nav-link">Directory</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- ==========================================
+     SIDE DRAWER MENU (Desktop & Mobile)
+     ========================================== -->
+<aside class="side-drawer side-drawer-ltr" id="sideDrawer" data-side-drawer aria-hidden="true" aria-label="Menu">
+    <div class="drawer-header">
+        <a href="/en/" class="brand">
+            <span class="brand-main">EduNews</span>
+            <span class="brand-sub">Education News</span>
+        </a>
+        <button class="drawer-close-btn" type="button" aria-label="Close Menu" data-drawer-close>
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="drawer-body">
+        <!-- Language switch (segmented control; current language is not a link) -->
+        <div class="lang-seg" role="group" aria-label="Language / اللغة">
+            <a href="/" class="lang-seg-item" lang="ar" hreflang="ar" data-translation-url>العربية</a>
+            <span class="lang-seg-item is-current" aria-current="true" lang="en">English</span>
+        </div>
+
+       
+
+        <!-- Main navigation -->
+
+        <ul class="drawer-nav-list">
+            <li><a href="/en/schools/" class="drawer-link"><i class="bi bi-building"></i> <span>Schools</span></a></li>
+            <li><a href="/en/universities/" class="drawer-link"><i class="bi bi-mortarboard"></i> <span>Universities</span></a></li>
+            <li><a href="/en/technical-and-technological-education/" class="drawer-link"><i class="bi bi-cpu"></i> <span>Technical Education</span></a></li>
+            <li><a href="/en/policies-and-decisions/" class="drawer-link"><i class="bi bi-file-earmark-text"></i> <span>Policies &amp; Decisions</span></a></li>
+            <li><a href="/en/articles-and-reports/" class="drawer-link"><i class="bi bi-newspaper"></i> <span>Articles &amp; Reports</span></a></li>
+            <li><a href="/en/education-economy-and-investment/" class="drawer-link"><i class="bi bi-graph-up-arrow"></i> <span>Education Economy</span></a></li>
+            <li><a href="/en/schools-and-universities-directory/" class="drawer-link"><i class="bi bi-journal-bookmark"></i> <span>Directory</span></a></li>
+        </ul>
+
+        <!-- Quick links -->
+        <div class="drawer-section-title">Quick Links</div>
+        <ul class="drawer-nav-list">
+            <li><a href="/en/about-us/" class="drawer-link"><i class="bi bi-info-circle"></i> <span>About Us</span></a></li>
+            <li><a href="/en/contact-us/" class="drawer-link"><i class="bi bi-envelope"></i> <span>Contact Us</span></a></li>
+            <li><a href="/en/subscribe/" class="drawer-link highlight"><i class="bi bi-bell"></i> <span>Subscribe to Newsletter</span></a></li>
+        </ul>
+    </div>
+
+    <div class="drawer-footer">
+        <div class="social-links d-flex justify-content-center gap-3">
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+    </div>
+</aside>
+
+<!-- Backdrop -->
+<div class="drawer-backdrop" data-drawer-backdrop></div>

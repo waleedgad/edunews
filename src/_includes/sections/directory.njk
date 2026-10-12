@@ -1,0 +1,262 @@
+<section class="news-article directory-section grid-layout">
+  <div class="article-container">
+
+    <!-- Top Leaderboard Ad -->
+    <div class="ad-unit ad-leaderboard">
+      <span class="ad-label">{% if section.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+      <div class="ad-container">
+        <span class="ad-placeholder-text">{% if section.lang == 'ar' %}إعلان 728x90{% else %}ADVERTISEMENT 728x90{% endif %}</span>
+      </div>
+    </div>
+
+    <!-- Directory Header & Description -->
+    <header class="sec-head sec-head-hero" style="margin-bottom: 24px;">
+      <div class="sec-head-content">
+        <h1 class="sec-head-title">{{ section.title }}</h1>
+        {% if section.description %}
+          <p class="sec-head-desc" style="color: #666; margin-top: 8px; font-size: 1.05rem;">
+            {{ section.description }}
+          </p>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- Directory Filter & Search Bar -->
+    <div class="directory-filter-bar" style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 32px; border: 1px solid #eee;">
+      <form class="directory-search-form" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; align-items: end;">
+        
+        <div class="filter-group">
+          <label style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #333;">
+            {% if section.lang == 'ar' %}البحث بالاسم{% else %}Search by Name{% endif %}
+          </label>
+          <input type="text" placeholder="{% if section.lang == 'ar' %}اسم المدرسة أو الجامعة...{% else %}School or University name...{% endif %}" style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem;">
+        </div>
+
+        <div class="filter-group">
+          <label style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #333;">
+            {% if section.lang == 'ar' %}نوع المؤسسة{% else %}Institution Type{% endif %}
+          </label>
+          <select style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; background-color: #fff;">
+            <option value="">{% if section.lang == 'ar' %}الكل{% else %}All Types{% endif %}</option>
+            <option value="universities">{% if section.lang == 'ar' %}جامعات{% else %}Universities{% endif %}</option>
+            <option value="international-schools">{% if section.lang == 'ar' %}مدارس دولية{% else %}International Schools{% endif %}</option>
+            <option value="private-schools">{% if section.lang == 'ar' %}مدارس خاصة{% else %}Private Schools{% endif %}</option>
+            <option value="stem-schools">{% if section.lang == 'ar' %}مدارس المتفوقين (STEM){% else %}STEM Schools{% endif %}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label style="display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 6px; color: #333;">
+            {% if section.lang == 'ar' %}المحافظة / المنطقة{% else %}Location / Governorate{% endif %}
+          </label>
+          <select style="width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.95rem; background-color: #fff;">
+            <option value="">{% if section.lang == 'ar' %}جميع المحافظات{% else %}All Locations{% endif %}</option>
+            <option value="cairo">{% if section.lang == 'ar' %}القاهرة{% else %}Cairo{% endif %}</option>
+            <option value="giza">{% if section.lang == 'ar' %}الجيزة{% else %}Giza{% endif %}</option>
+            <option value="alexandria">{% if section.lang == 'ar' %}الإسكندرية{% else %}Alexandria{% endif %}</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <button type="submit" class="pill-btn" style="width: 100%; text-align: center; justify-content: center; height: 42px;">
+            {% if section.lang == 'ar' %}بحث في الدليل{% else %}Search Directory{% endif %}
+          </button>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- Main Content Layout Grid -->
+    <div class="article-layout">
+
+      <!-- Main Directory Feed Column -->
+      <main class="article-main">
+
+        <div class="sec-head" style="margin-bottom: 24px;">
+          <h3 class="sec-head-title" style="font-size: 1.25rem;">
+            {% if section.lang == 'ar' %}دليل المؤسسات التعليمية{% else %}Educational Institutions Directory{% endif %}
+          </h3>
+        </div>
+
+        <!-- Directory Cards Grid -->
+        <div class="directory-card-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px;">
+
+          <!-- Institution Card 1 -->
+          <article class="directory-card" style="display: flex; flex-direction: column; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background-color: #fff;">
+            <a href="#" class="story-media ratio-16x9" style="display: block; position: relative;">
+              <img src="/assets/img/placeholder.png" alt="University Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+              <span class="pick-tag" style="position: absolute; top: 12px; right: 12px;">{% if section.lang == 'ar' %}جامعة حكومية{% else %}Public University{% endif %}</span>
+            </a>
+            <div class="directory-card-body" style="padding: 16px; display: flex; flex-direction: column; flex-grow: 1;">
+              <h4 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">
+                <a href="#" style="text-decoration: none; color: inherit;">
+                  {% if section.lang == 'ar' %}اسم الجامعة أو الكلية الرسمية{% else %}Official University or Faculty Name{% endif %}
+                </a>
+              </h4>
+              <p style="font-size: 0.85rem; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> {% if section.lang == 'ar' %}القاهرة، مصر{% else %}Cairo, Egypt{% endif %}
+              </p>
+              <p class="story-excerpt" style="font-size: 0.88rem; color: #555; line-height: 1.5; margin-bottom: 16px; flex-grow: 1;">
+                {% if section.lang == 'ar' %}
+                  نبذة مختصرة عن البرامج الأكاديمية والمرافق والتخصصات المتاحة للطلاب للعام الدراسي الجديد...
+                {% else %}
+                  Brief overview of academic programs, campus facilities, and majors offered for the upcoming academic year...
+                {% endif %}
+              </p>
+              <a href="#" class="pill-btn" style="text-align: center; width: 100%;">
+                {% if section.lang == 'ar' %}عرض التفاصيل والتخصصات{% else %}View Details & Majors{% endif %}
+              </a>
+            </div>
+          </article>
+
+          <!-- Institution Card 2 -->
+          <article class="directory-card" style="display: flex; flex-direction: column; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background-color: #fff;">
+            <a href="#" class="story-media ratio-16x9" style="display: block; position: relative;">
+              <img src="/assets/img/placeholder.png" alt="School Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+              <span class="pick-tag" style="position: absolute; top: 12px; right: 12px;">{% if section.lang == 'ar' %}مدرسة دولية{% else %}International School{% endif %}</span>
+            </a>
+            <div class="directory-card-body" style="padding: 16px; display: flex; flex-direction: column; flex-grow: 1;">
+              <h4 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">
+                <a href="#" style="text-decoration: none; color: inherit;">
+                  {% if section.lang == 'ar' %}اسم المدرسة الدولية المتكاملة{% else %}Integrated International School Name{% endif %}
+                </a>
+              </h4>
+              <p style="font-size: 0.85rem; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> {% if section.lang == 'ar' %}الجيزة، مصر{% else %}Giza, Egypt{% endif %}
+              </p>
+              <p class="story-excerpt" style="font-size: 0.88rem; color: #555; line-height: 1.5; margin-bottom: 16px; flex-grow: 1;">
+                {% if section.lang == 'ar' %}
+                  تعتمد المناهج البريطانية والأمريكية وتوفر بيئة تعليمية متطورة لكافة المراحل الدراسية...
+                {% else %}
+                  Offering British and American curricula with advanced learning facilities across all grade levels...
+                {% endif %}
+              </p>
+              <a href="#" class="pill-btn" style="text-align: center; width: 100%;">
+                {% if section.lang == 'ar' %}عرض التفاصيل والتخصصات{% else %}View Details & Majors{% endif %}
+              </a>
+            </div>
+          </article>
+
+          <!-- Institution Card 3 -->
+          <article class="directory-card" style="display: flex; flex-direction: column; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background-color: #fff;">
+            <a href="#" class="story-media ratio-16x9" style="display: block; position: relative;">
+              <img src="/assets/img/placeholder.png" alt="University Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+              <span class="pick-tag" style="position: absolute; top: 12px; right: 12px;">{% if section.lang == 'ar' %}جامعة خاصة{% else %}Private University{% endif %}</span>
+            </a>
+            <div class="directory-card-body" style="padding: 16px; display: flex; flex-direction: column; flex-grow: 1;">
+              <h4 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">
+                <a href="#" style="text-decoration: none; color: inherit;">
+                  {% if section.lang == 'ar' %}جامعة تكنولوجية أو خاصة مميزة{% else %}Prominent Private or Tech University{% endif %}
+                </a>
+              </h4>
+              <p style="font-size: 0.85rem; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> {% if section.lang == 'ar' %}الإسكندرية، مصر{% else %}Alexandria, Egypt{% endif %}
+              </p>
+              <p class="story-excerpt" style="font-size: 0.88rem; color: #555; line-height: 1.5; margin-bottom: 16px; flex-grow: 1;">
+                {% if section.lang == 'ar' %}
+                  تخصصات حديثة في الذكاء الاصطناعي والهندسة مع شراكات دولية واعتمادات أكاديمية...
+                {% else %}
+                  Modern specializations in AI and engineering with international academic partnerships...
+                {% endif %}
+              </p>
+              <a href="#" class="pill-btn" style="text-align: center; width: 100%;">
+                {% if section.lang == 'ar' %}عرض التفاصيل والتخصصات{% else %}View Details & Majors{% endif %}
+              </a>
+            </div>
+          </article>
+
+          <!-- Institution Card 4 -->
+          <article class="directory-card" style="display: flex; flex-direction: column; border: 1px solid #e5e5e5; border-radius: 8px; overflow: hidden; background-color: #fff;">
+            <a href="#" class="story-media ratio-16x9" style="display: block; position: relative;">
+              <img src="/assets/img/placeholder.png" alt="STEM School Placeholder" style="width: 100%; height: 100%; object-fit: cover;">
+              <span class="pick-tag" style="position: absolute; top: 12px; right: 12px;">{% if section.lang == 'ar' %}مدرسة STEM{% else %}STEM School{% endif %}</span>
+            </a>
+            <div class="directory-card-body" style="padding: 16px; display: flex; flex-direction: column; flex-grow: 1;">
+              <h4 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 8px;">
+                <a href="#" style="text-decoration: none; color: inherit;">
+                  {% if section.lang == 'ar' %}مدرسة المتفوقين في العلوم والتكنولوجيا{% else %}STEM High School for Excellence{% endif %}
+                </a>
+              </h4>
+              <p style="font-size: 0.85rem; color: #777; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                <span>📍</span> {% if section.lang == 'ar' %}القاهرة، مصر{% else %}Cairo, Egypt{% endif %}
+              </p>
+              <p class="story-excerpt" style="font-size: 0.88rem; color: #555; line-height: 1.5; margin-bottom: 16px; flex-grow: 1;">
+                {% if section.lang == 'ar' %}
+                  نظام تعليمي قائم على المشاريع البحثية والتفكير النقدي للطلاب المتميزين...
+                {% else %}
+                  Project-based research curriculum focused on STEM disciplines for outstanding students...
+                {% endif %}
+              </p>
+              <a href="#" class="pill-btn" style="text-align: center; width: 100%;">
+                {% if section.lang == 'ar' %}عرض التفاصيل والتخصصات{% else %}View Details & Majors{% endif %}
+              </a>
+            </div>
+          </article>
+
+        </div>
+
+      </main>
+
+      <!-- Sidebar -->
+      <aside class="article-sidebar">
+        <div class="sticky-sidebar">
+
+          <!-- Admission Deadlines Widget -->
+          <div class="sidebar-widget" style="background-color: #f9f9f9; padding: 20px; border-radius: 8px; margin-bottom: 32px; border-left: 4px solid #0056b3;">
+            <h4 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 8px;">
+              {% if section.lang == 'ar' %}مواعيد التقديم والقابليات{% else %}Admission Deadlines{% endif %}
+            </h4>
+            <p style="font-size: 0.88rem; color: #666; margin-bottom: 16px;">
+              {% if section.lang == 'ar' %}تابع أحدث مواعيد فتح باب التنسيق والقبول بالمؤسسات التعليمية.{% else %}Track upcoming application dates and admission rounds.{% endif %}
+            </p>
+            <ul style="list-style: none; padding: 0; margin: 0; font-size: 0.88rem; color: #444;">
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                <span>{% if section.lang == 'ar' %}الجامعات الحكومية{% else %}Public Universities{% endif %}</span>
+                <strong style="color: #d9534f;">{% if section.lang == 'ar' %}مفتوح الآن{% else %}Open Now{% endif %}</strong>
+              </li>
+              <li style="padding: 8px 0; border-bottom: 1px solid #eee; display: flex; justify-content: space-between;">
+                <span>{% if section.lang == 'ar' %}المدارس الدولية{% else %}International Schools{% endif %}</span>
+                <strong>{% if section.lang == 'ar' %}قريباً{% else %}Soon{% endif %}</strong>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Top Ranked Widget -->
+          <div class="sidebar-widget" style="margin-bottom: 32px;">
+            <h4 class="section-title-sm">{% if section.lang == 'ar' %}الأعلى تقييماً{% else %}Top Ranked{% endif %}</h4>
+            <div class="most-read-list" style="margin-top: 16px;">
+              <article class="most-read-item">
+                <span class="mr-number">1</span>
+                <div class="mr-body">
+                  <h4><a href="#">{% if section.lang == 'ar' %}جامعة القاهرة - كلية الهندسة{% else %}Cairo University - Faculty of Engineering{% endif %}</a></h4>
+                </div>
+              </article>
+              <article class="most-read-item">
+                <span class="mr-number">2</span>
+                <div class="mr-body">
+                  <h4><a href="#">{% if section.lang == 'ar' %}الجامعة الأمريكية بالقاهرة{% else %}American University in Cairo{% endif %}</a></h4>
+                </div>
+              </article>
+              <article class="most-read-item">
+                <span class="mr-number">3</span>
+                <div class="mr-body">
+                  <h4><a href="#">{% if section.lang == 'ar' %}مدارس النيل المصرية الدولية{% else %}Nile Egyptian International Schools{% endif %}</a></h4>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <!-- Sticky Half-Page Ad Unit -->
+          <div class="ad-unit ad-halfpage">
+            <span class="ad-label">{% if section.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+            <div class="ad-container">
+              <span class="ad-placeholder-text">{% if section.lang == 'ar' %}إعلان 300x600{% else %}ADVERTISEMENT 300x600{% endif %}</span>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>

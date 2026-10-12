@@ -1,0 +1,146 @@
+<!-- ==========================================
+     TOP UTILITY BAR
+     ========================================== -->
+<div class="top-bar d-none d-md-block">
+    <div class="container d-flex justify-content-between align-items-center">
+        <!-- Date & Time -->
+        <div class="top-bar-date d-flex align-items-center gap-2" id="todayDateAr">
+            <i class="bi bi-clock"></i> <span class="date-text"></span>
+        </div>
+
+        <!-- Links & Language Switch -->
+        <div class="top-bar-links d-flex align-items-center gap-3">
+            <a href="/ar/من-نحن/" class="top-link">عن المنصة</a>
+            <a href="/ar/تواصل-معنا/" class="top-link">تواصل معنا</a>
+            <a href="/en/" class="lang-switch badge-lang" data-translation-url>
+                <i class="bi bi-globe"></i> EN
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ==========================================
+     MAIN HEADER
+     ========================================== -->
+<header class="site-header sticky-top" id="siteHeader">
+    <div class="container">
+        <div class="header-inner">
+
+            <!-- LEFT: Menu Toggle Button -->
+            <div class="header-left">
+                <button class="menu-toggle" type="button" aria-label="فتح القائمة" aria-expanded="false" aria-controls="sideDrawer" data-menu-toggle>
+                    <span class="hamburger-box">
+                        <span class="hamburger-inner"></span>
+                    </span>
+                </button>
+            </div>
+
+            <!-- CENTER: Brand Logo -->
+            <a href="/" class="brand">
+                <span class="brand-main">EduNews</span>
+                <span class="brand-sub">أخبار التعليم</span>
+            </a>
+
+            <!-- RIGHT: Header Actions -->
+            <div class="header-actions d-flex align-items-center gap-2">
+                <button class="icon-btn search-trigger" type="button" aria-label="بحث">
+                    <i class="bi bi-search"></i>
+                </button>
+                <a href="/ar/اشترك/" class="btn-subscribe d-none d-sm-inline-flex">اشترك بالنشرة</a>
+            </div>
+        </div>
+    </div>
+
+<!-- ===== search panel ===== -->
+<div class="search-panel" id="searchPanel" role="search"
+     data-msg-none="لا توجد نتائج لـ"
+     data-msg-error="البحث غير متاح حاليًا، حاول مرة أخرى لاحقًا.">
+    <div class="container">
+        <div class="search-box">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" class="search-input" id="searchInput"
+                   placeholder="ابحث في الأخبار والتقارير…" aria-label="بحث"
+                   autocomplete="off" enterkeyhint="search">
+            <button type="button" class="search-close" aria-label="إغلاق البحث">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <div class="search-results" aria-live="polite"></div>
+    </div>
+</div>
+
+    <!-- SECOND ROW: Main Horizontal Nav (Desktop) -->
+    <div class="header-nav-row d-none d-lg-block">
+        <div class="container">
+            <nav class="primary-nav" aria-label="القائمة الرئيسية">
+                <ul class="nav-list d-flex justify-content-between m-0 p-0 list-unstyled">
+                    <li><a href="/" class="nav-link">الرئيسية</a></li>
+                    <li><a href="/ar/مدارس/" class="nav-link">مدارس</a></li>
+                    <li><a href="/ar/جامعات/" class="nav-link">جامعات</a></li>
+                    <li><a href="/ar/التعليم-الفني-والتكنولوجي/" class="nav-link">التعليم الفني</a></li>
+                    <li><a href="/ar/السياسات-والقرارات/" class="nav-link">السياسات والقرارات</a></li>
+                    <li><a href="/ar/مقالات-وتقارير/" class="nav-link">مقالات وتقارير</a></li>
+                    <li><a href="/ar/اقتصاد-واستثمار-التعليم/" class="nav-link">اقتصاد واستثمار التعليم</a></li>
+                    <li><a href="/ar/دليل-المدارس-والجامعات/" class="nav-link">دليل المدارس والجامعات</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<!-- ==========================================
+     SIDE DRAWER MENU (Desktop & Mobile)
+     ========================================== -->
+<aside class="side-drawer side-drawer-rtl" id="sideDrawer" data-side-drawer aria-hidden="true" aria-label="القائمة">
+    <div class="drawer-header">
+        <a href="/" class="brand">
+            <span class="brand-main">EduNews</span>
+            <span class="brand-sub">أخبار التعليم</span>
+        </a>
+        <button class="drawer-close-btn" type="button" aria-label="إغلاق القائمة" data-drawer-close>
+            <i class="bi bi-x-lg"></i>
+        </button>
+    </div>
+
+    <div class="drawer-body">
+        <!-- Language switch (segmented control; current language is not a link) -->
+        <div class="lang-seg" role="group" aria-label="اللغة / Language">
+            <span class="lang-seg-item is-current" aria-current="true" lang="ar">العربية</span>
+            <a href="/en/" class="lang-seg-item" lang="en" hreflang="en" data-translation-url>English</a>
+        </div>
+
+
+        <!-- Main navigation -->
+
+        <ul class="drawer-nav-list">
+
+            <li><a href="/ar/مدارس/" class="drawer-link"><i class="bi bi-building"></i> <span>مدارس</span></a></li>
+            <li><a href="/ar/جامعات/" class="drawer-link"><i class="bi bi-mortarboard"></i> <span>جامعات</span></a></li>
+            <li><a href="/ar/التعليم-الفني-والتكنولوجي/" class="drawer-link"><i class="bi bi-cpu"></i> <span>التعليم الفني والتكنولوجي</span></a></li>
+            <li><a href="/ar/السياسات-والقرارات/" class="drawer-link"><i class="bi bi-file-earmark-text"></i> <span>السياسات والقرارات</span></a></li>
+            <li><a href="/ar/مقالات-وتقارير/" class="drawer-link"><i class="bi bi-newspaper"></i> <span>مقالات وتقارير</span></a></li>
+            <li><a href="/ar/اقتصاد-واستثمار-التعليم/" class="drawer-link"><i class="bi bi-graph-up-arrow"></i> <span>اقتصاد واستثمار التعليم</span></a></li>
+            <li><a href="/ar/دليل-المدارس-والجامعات/" class="drawer-link"><i class="bi bi-journal-bookmark"></i> <span>دليل المدارس والجامعات</span></a></li>
+        </ul>
+
+        <!-- Quick links -->
+        <div class="drawer-section-title">روابط سريعة</div>
+        <ul class="drawer-nav-list">
+            <li><a href="/ar/من-نحن/" class="drawer-link"><i class="bi bi-info-circle"></i> <span>عن المنصة</span></a></li>
+            <li><a href="/ar/تواصل-معنا/" class="drawer-link"><i class="bi bi-envelope"></i> <span>تواصل معنا</span></a></li>
+            <li><a href="/ar/اشترك/" class="drawer-link highlight"><i class="bi bi-bell"></i> <span>اشترك بالنشرة البريدية</span></a></li>
+        </ul>
+    </div>
+
+    <div class="drawer-footer">
+        <div class="social-links d-flex justify-content-center gap-3">
+            <a href="#" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+            <a href="#" aria-label="Twitter"><i class="bi bi-twitter-x"></i></a>
+            <a href="#" aria-label="LinkedIn"><i class="bi bi-linkedin"></i></a>
+            <a href="#" aria-label="YouTube"><i class="bi bi-youtube"></i></a>
+        </div>
+    </div>
+</aside>
+
+<!-- Backdrop -->
+<div class="drawer-backdrop" data-drawer-backdrop></div>

@@ -1,0 +1,58 @@
+---
+layout: layouts/base.njk
+title: "فريق التحرير | EduNews"
+lang: ar
+language: ar
+permalink: "/ar/فريق-التحرير/"
+eleventyExcludeFromCollections: true
+---
+{#
+  Static page — edit the header/CTA text below directly.
+  Replaces the "editorial-team" (ar) entry that used to live in
+  src/_data/sitePages.js. The roster itself still comes from the site-wide
+  `authors` collection (same as author-profile.njk uses), filtered to
+  language == "ar" — that part stays dynamic on purpose.
+  Styling comes entirely from main.css (.feed-page, .feed-header, .feed-grid,
+  .static-card, .team-*, .static-cta, .pill-btn) — don't add styles here.
+#}
+{% set authorBase = '/ar/authors/' %}
+{% set team = [] %}
+{% for a in authors %}{% if a.language == 'ar' %}{% set _ = team.push(a) %}{% endif %}{% endfor %}
+
+<div class="feed-page static-page static-page--team" data-translation-url="/en/editorial-team/">
+
+    <header class="feed-header">
+        <h1 class="feed-title feed-title-topic">فريق التحرير</h1>
+        <p class="feed-lead">الصحفيون والكتّاب الذين يقفون وراء تغطيتنا.</p>
+    </header>
+
+    {% if team.length %}
+    <div class="feed-grid">
+        {% for a in team %}
+        {% set name = a.name_ar or a.name_en %}
+        {% set role = a.role_ar or a.role_en %}
+        <div class="feed-item">
+            <article class="static-card team-card">
+                {% if a.avatarUrl %}
+                <img class="author-profile-avatar" src="{{ a.avatarUrl }}?w=240&h=240&fit=crop" alt="" width="120" height="120" loading="lazy">
+                {% else %}
+                <span class="author-profile-avatar team-initial" aria-hidden="true">{{ name | first }}</span>
+                {% endif %}
+                <h2 class="team-name"><a href="{{ authorBase }}{{ a.slug }}/">{{ name }}</a></h2>
+                {% if role %}<p class="team-role">{{ role }}</p>{% endif %}
+            </article>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="feed-empty"><p class="feed-empty-text">سيظهر فريق التحرير هنا قريبًا.</p></div>
+    {% endif %}
+
+    <div class="feature-reading-column">
+        <div class="static-cta">
+            <p>لديك خبر أو ملاحظة؟ راسل التحرير مباشرة.</p>
+            <a href="mailto:editorial@edunews.example" class="pill-btn">راسل التحرير <i class="bi bi-arrow-left"></i></a>
+        </div>
+    </div>
+
+</div>

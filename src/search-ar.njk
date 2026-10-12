@@ -1,0 +1,33 @@
+---
+layout: layouts/base.njk
+lang: ar
+title: "نتائج البحث"
+permalink: /ar/search/
+eleventyExcludeFromCollections: true
+pagefindIgnore: true
+---
+<div class="container my-4">
+    <div class="search-page" id="searchPage"
+         data-msg-prompt="اكتب كلمة للبحث في الأخبار والتقارير."
+         data-msg-none="لا توجد نتائج لـ"
+         data-msg-count="نتائج البحث عن «{q}» ({n})"
+         data-msg-error="البحث غير متاح حاليًا، حاول مرة أخرى لاحقًا.">
+
+        <header class="sec-head">
+            <h1 class="sec-head-title">نتائج البحث</h1>
+        </header>
+
+        <form class="search-page-form" action="/ar/search/" method="get" role="search">
+            <input type="search" name="q" class="search-page-input"
+                   placeholder="ابحث في الأخبار والتقارير…" aria-label="بحث"
+                   autocomplete="off" enterkeyhint="search">
+            <button type="submit" class="pill-btn">بحث</button>
+        </form>
+
+        <p class="search-page-status" aria-live="polite"></p>
+        <ul class="search-page-list"></ul>
+        <button type="button" class="pill-btn search-page-more" hidden>عرض المزيد</button>
+
+        <noscript><p class="search-page-status">يتطلب البحث تفعيل JavaScript.</p></noscript>
+    </div>
+</div>

@@ -1,0 +1,33 @@
+---
+layout: layouts/base.njk
+lang: en
+title: "Search Results"
+permalink: /en/search/
+eleventyExcludeFromCollections: true
+pagefindIgnore: true
+---
+<div class="container my-4">
+    <div class="search-page" id="searchPage"
+         data-msg-prompt="Type a word to search news and reports."
+         data-msg-none="No results for"
+         data-msg-count="Results for “{q}” ({n})"
+         data-msg-error="Search is unavailable right now. Please try again later.">
+
+        <header class="sec-head">
+            <h1 class="sec-head-title">Search Results</h1>
+        </header>
+
+        <form class="search-page-form" action="/en/search/" method="get" role="search">
+            <input type="search" name="q" class="search-page-input"
+                   placeholder="Search news and reports…" aria-label="Search"
+                   autocomplete="off" enterkeyhint="search">
+            <button type="submit" class="pill-btn">Search</button>
+        </form>
+
+        <p class="search-page-status" aria-live="polite"></p>
+        <ul class="search-page-list"></ul>
+        <button type="button" class="pill-btn search-page-more" hidden>Show more</button>
+
+        <noscript><p class="search-page-status">Search requires JavaScript.</p></noscript>
+    </div>
+</div>

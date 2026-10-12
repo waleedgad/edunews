@@ -1,0 +1,17 @@
+User-agent: *
+Allow: /
+
+# Allow AI Search & Chatbots explicitly
+User-agent: GPTBot
+Allow: /
+User-agent: ChatGPT-User
+Allow: /
+User-agent: Google-Extended
+Allow: /
+User-agent: ClaudeBot
+Allow: /
+User-agent: PerplexityBot
+Allow: /
+
+# Point to your sitemap
+Sitemap: https://www.yourdomain.com/sitemap.xml

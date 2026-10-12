@@ -1,0 +1,137 @@
+{#
+  SECTION PAGE: "magazine" template (used by sections.js entries with template: "magazine").
+
+  Wired to sectionPages (src/_data/sectionPages.js): each page of a section is one entry,
+  already holding its own stories (section.items) and the sidebar list (section.picks).
+  PAGE 1:
+    items[0]          featured overlay story
+    items[1..3]       three headlines beside it
+    items[4..]        standard feed (tag, headline, summary, thumbnail)
+  PAGE 2 and later: no featured block, every story goes to the feed.
+    picks             sidebar list: Featured stories of the category, else the newest
+  Ad units stay static. With no stories the page shows a "no stories yet" message.
+  Page links: sections/pagination.njk
+#}
+{% set items = section.items or [] %}
+{% set picks = section.picks or [] %}
+{% set isFirstPage = (section.pageNumber or 1) == 1 %}
+{% set lead = items[0] if isFirstPage else null %}
+{% set side = items.slice(1, 4) if isFirstPage else [] %}
+{% set feed = items.slice(4) if isFirstPage else items %}
+
+<section class="news-article category-section">
+  <div class="article-container">
+
+    <!-- Top Leaderboard Ad -->
+    <div class="ad-unit ad-leaderboard">
+      <span class="ad-label">{% if section.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+      <div class="ad-container">
+        <span class="ad-placeholder-text">{% if section.lang == 'ar' %}إعلان 728x90{% else %}ADVERTISEMENT 728x90{% endif %}</span>
+      </div>
+    </div>
+
+    <!-- Main Content Layout Grid -->
+    <div class="article-layout">
+
+      <!-- Primary Category Content Column -->
+      <main class="article-main">
+
+        <!-- Category Header -->
+        <header class="sec-head">
+          <h1 class="sec-head-title">{{ section.title }}</h1>
+        </header>
+
+        {% if section.description %}
+        <p class="category-description" style="color: #666; margin-bottom: 24px; font-size: 1.1rem;">
+          {{ section.description }}
+        </p>
+        {% endif %}
+
+        {% if lead %}
+        <!-- Featured Category Articles (Duo Section) -->
+        <div class="duo-section">
+          <!-- Main Highlight -->
+          <div class="duo-main">
+            <a href="{{ lead.url }}" class="overlay-card">
+              <img src="{{ lead.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ lead.imageAlt or lead.title }}">
+              <h3 class="overlay-title">{{ lead.title }}</h3>
+            </a>
+          </div>
+
+          <!-- Secondary Highlights -->
+          {% if side.length %}
+          <div class="duo-side story-list">
+            {% for s in side %}
+            <article class="story-row">
+              <h4 class="story-title story-title-sm"><a href="{{ s.url }}">{{ s.title }}</a></h4>
+            </article>
+            {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if feed.length %}
+        <!-- Standard Category Feed -->
+        <div class="story-list story-list-roomy" style="margin-top: 32px;">
+          {% for a in feed %}
+          <article class="story-row">
+            <div class="story-title story-title-md">
+              <span class="pick-tag">{{ a.tag }}</span>
+              <a href="{{ a.url }}">{{ a.title }}</a>
+              {% if a.summary %}<p class="story-excerpt">{{ a.summary }}</p>{% endif %}
+            </div>
+            <a href="{{ a.url }}" class="story-thumb story-media ratio-3x2">
+              <img src="{{ a.imageUrl or '/assets/img/placeholder.png' }}" alt="{{ a.imageAlt or a.title }}">
+            </a>
+          </article>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% include "sections/pagination.njk" %}
+
+        {% if not items.length %}
+        <p class="category-empty" style="color: #666; margin: 40px 0; font-size: 1.05rem;">
+          {% if section.lang == 'ar' %}لا توجد مقالات في هذا القسم بعد.{% else %}No stories in this section yet.{% endif %}
+        </p>
+        {% endif %}
+
+      </main>
+
+      <!-- Sidebar: Widgets + Sticky Ad -->
+      <aside class="article-sidebar">
+        <div class="sticky-sidebar">
+
+          <!-- Top stories: Featured stories of this category, else the newest.
+               (There is no page-view data yet, so this is not a "most read" list.) -->
+          {% if picks.length %}
+          <div class="sidebar-widget" style="margin-bottom: 32px;">
+            <h4 class="section-title-sm">{% if section.lang == 'ar' %}اختيارات المحررين في القسم{% else %}Editors' Picks{% endif %}</h4>
+            <div class="most-read-list" style="margin-top: 16px;">
+              {% for p in picks %}
+              <article class="most-read-item">
+                <span class="mr-number">{{ loop.index }}</span>
+                <div class="mr-body">
+                  <h4><a href="{{ p.url }}">{{ p.title }}</a></h4>
+                </div>
+              </article>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Sticky Half-Page Ad Unit -->
+          <div class="ad-unit ad-halfpage">
+            <span class="ad-label">{% if section.lang == 'ar' %}إعلان{% else %}Advertisement{% endif %}</span>
+            <div class="ad-container">
+              <span class="ad-placeholder-text">{% if section.lang == 'ar' %}إعلان 300x600{% else %}ADVERTISEMENT 300x600{% endif %}</span>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</section>

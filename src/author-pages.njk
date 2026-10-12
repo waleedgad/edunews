@@ -1,0 +1,10 @@
+---
+pagination:
+  data: authors
+  size: 1
+  alias: author
+permalink: "/{{ author.language }}/author/{{ author.slug }}/index.html"
+layout: "layouts/author-profile.njk"
+eleventyComputed:
+  title: "{{ author.name_ar if author.language == 'ar' else author.name_en }} | EduNews"
+---

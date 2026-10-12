@@ -1,0 +1,228 @@
+---
+layout: "layouts/base.njk"
+---
+{# ---------- Related + More lists (built from the global `articles` data) ---------- #}
+{% set isOpinion = (article.archetype == 'editorial') %}
+{% set relatedList = [] %}
+{% set moreList = [] %}
+
+{# Related, pass 1: same language + group + category #}
+{% for a in articles %}
+  {% if relatedList.length < 6
+        and a.language == article.language
+        and a._id != article._id
+        and (a.archetype == 'editorial') == isOpinion
+        and article.category and a.category
+        and a.category._id == article.category._id %}
+    {% set _ = relatedList.push(a) %}
+  {% endif %}
+{% endfor %}
+
+{# Related, pass 2: top up with the newest from the same group #}
+{% for a in articles %}
+  {% if relatedList.length < 2
+        and a.language == article.language
+        and a._id != article._id
+        and (a.archetype == 'editorial') == isOpinion
+        and a not in relatedList %}
+    {% set _ = relatedList.push(a) %}
+  {% endif %}
+{% endfor %}
+
+
+<article class="feature-article" data-pagefind-body>
+    {# Search (Pagefind): only the headline, summary and story text are indexed. The category badge,
+       byline (author + date), photo + caption + credit and tags are data-pagefind-ignore.
+       Language / date / category are passed as filter + meta (shown on the results page). #}
+    <span hidden data-pagefind-filter="lang[data-lang]" data-lang="{{ article.language }}"></span>
+    <span hidden data-pagefind-meta="date:{{ article.publishedAt | truncate(10, true, '') }}"></span>
+    {% if article.category %}<span hidden data-pagefind-meta="category:{{ (article.category.title_ar if article.language == 'ar' else article.category.title_en) | replace(',', ' ') }}"></span>{% endif %}
+  <div class="article-container">
+
+    <!-- Top Leaderboard Ad -->
+    <div class="ad-unit ad-leaderboard" data-pagefind-ignore>
+      <span class="ad-label">{{ 'إعلان' if article.language == 'ar' else 'Advertisement' }}</span>
+      <div class="ad-container">
+        <span class="ad-placeholder-text">ADVERTISEMENT 728x90</span>
+      </div>
+    </div>
+
+    <!-- Article Header (MOVED OUTSIDE OF THE GRID) -->
+    <header class="article-header">
+
+      <!-- Category Badge -->
+      {% if article.category %}
+        {% set catColor = article.category.color or 'primary' %}
+        {% set isHex = (catColor and catColor.startsWith('#')) %}
+        <a href="/{{ article.language }}/category/{{ article.category.slug }}/"
+           data-pagefind-ignore class="article-category{{ ' article-category-' ~ catColor if not isHex else '' }}"
+           {% if isHex %}style="--category-color: {{ catColor }};"{% endif %}>
+          {{ article.category.title_ar if article.language == 'ar' else article.category.title_en }}
+        </a>
+      {% endif %}
+
+      <!-- Headline -->
+      <h1 class="article-title">{{ article.title }}</h1>
+
+      <!-- Byline: author avatar/name, publish date & share icons -->
+      <div class="article-byline" data-pagefind-ignore>
+        {% if article.author %}
+          <div class="byline-author">
+            {% if article.author.avatarUrl %}
+              <a href="/{{ article.language }}/author/{{ article.author.slug }}/" class="byline-avatar-link">
+                <img src="{{ article.author.avatarUrl }}" alt="{{ article.author.name_en }}" class="byline-avatar" width="40" height="40">
+              </a>
+            {% endif %}
+            <a href="/{{ article.language }}/author/{{ article.author.slug }}/" class="byline-name">
+              {{ article.author.name_ar if article.language == 'ar' else article.author.name_en }}
+            </a>
+          </div>
+        {% endif %}
+
+        <div class="byline-meta">
+          {% if article.publishedAt %}
+            <time class="byline-date" datetime="{{ article.publishedAt }}">
+              {{ article.publishedAt | truncate(10, true, "") }}
+            </time>
+          {% endif %}
+
+          <div class="byline-share" data-pagefind-ignore>
+            <a href="https://api.whatsapp.com/send?text={{ article.title | urlencode }}%20{{ page.url | urlencode }}" target="_blank" rel="noopener" class="byline-share-btn" aria-label="Share on WhatsApp">
+              <i class="bi bi-whatsapp"></i>
+            </a>
+            <a href="https://twitter.com/intent/tweet?text={{ article.title | urlencode }}" target="_blank" rel="noopener" class="byline-share-btn" aria-label="Share on X">
+              <i class="bi bi-twitter-x"></i>
+            </a>
+            <a href="mailto:?subject={{ article.title | urlencode }}&amp;body={{ page.url | urlencode }}" class="byline-share-btn" aria-label="Share by email">
+              <i class="bi bi-envelope"></i>
+            </a>
+            <a href="https://www.linkedin.com/sharing/share-offsite/?url={{ page.url | urlencode }}" target="_blank" rel="noopener" class="byline-share-btn" aria-label="Share on LinkedIn">
+              <i class="bi bi-linkedin"></i>
+            </a>
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ page.url | urlencode }}" target="_blank" rel="noopener" class="byline-share-btn" aria-label="Share on Facebook">
+              <i class="bi bi-facebook"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lead Summary -->
+      {% if article.summary %}
+        <p class="article-lead">{{ article.summary }}</p>
+      {% endif %}
+
+      <!-- Main Feature Image -->
+      {% if article.imageUrl %}
+        <figure class="article-hero-figure" data-pagefind-ignore>
+          <div class="article-hero-img-wrap">
+            <img src="{{ article.imageUrl }}" alt="{{ article.imageAlt | default(article.title) }}">
+          </div>
+          {% if article.imageCaption or article.imageCredit %}
+            <figcaption class="article-hero-caption">
+              <span>{{ article.imageCaption }}</span>
+              {% if article.imageCredit %}
+                <span class="article-hero-credit">
+                  {{ 'مصدر الصورة:' if article.language == 'ar' else 'Credit:' }} {{ article.imageCredit }}
+                </span>
+              {% endif %}
+            </figcaption>
+          {% endif %}
+        </figure>
+      {% endif %}
+    </header>
+
+    <!-- Main Content Layout Grid -->
+    <div class="article-layout">
+
+      <!-- Primary Article Column -->
+      <main class="article-main">
+
+        <!-- Render Portable Text Body (Drop cap remains naturally enabled via CSS for feature-article) -->
+        <div class="article-body-content">
+          {{ article.body | portableText | safe }}
+        </div>
+
+        <!-- Topics & Tags -->
+        {% if article.topics and article.topics.length > 0 %}
+          <div class="topics-wrapper" data-pagefind-ignore>
+            <div class="topics-list">
+              <span class="topics-label">
+                {{ 'العلامات:' if article.language == 'ar' else 'Tags:' }}
+              </span>
+              {% for t in article.topics %}
+                <a href="/{{ article.language }}/tag/{{ t.slug }}/" class="tag-badge">
+                  {{ t.title_ar if article.language == 'ar' else t.title_en }}
+                </a>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Related Section -->
+        {% if relatedList.length %}
+        <section class="related-news-section" data-pagefind-ignore>
+          <h3 class="section-title">
+            {{ 'مقالات ذات صلة' if article.language == 'ar' else 'Related Editorials' }}
+          </h3>
+          <div class="related-news-grid">
+            {% for related in relatedList %}
+              <div class="related-news-item">
+                <article class="news-card">
+                  {% if related.imageUrl %}
+                    <a href="{{ related.permalink }}" class="news-card-image">
+                      <img src="{{ related.imageUrl }}" alt="{{ related.imageAlt | default(related.title) }}" loading="lazy">
+                    </a>
+                  {% endif %}
+                  <div class="news-card-body">
+                    <h3><a href="{{ related.permalink }}">{{ related.title }}</a></h3>
+                  </div>
+                </article>
+              </div>
+            {% endfor %}
+          </div>
+        </section>
+        {% endif %}
+
+      </main>
+
+      <!-- Sidebar: More list + Ad space -->
+      <aside class="article-sidebar" data-pagefind-ignore>
+        <div class="sticky-sidebar">
+
+          <!-- More Widget -->
+          {% if moreList.length %}
+          <div class="sidebar-widget">
+            <h4 class="section-title-sm">
+              {{ 'المزيد من المقالات' if article.language == 'ar' else 'More Articles' }}
+            </h4>
+            <div class="featured-list">
+              {% for item in moreList %}
+                <div class="featured-item">
+                  {% if item.imageUrl %}
+                    <a href="{{ item.permalink }}" class="featured-thumb">
+                      <img src="{{ item.imageUrl }}" alt="{{ item.imageAlt | default(item.title) }}" loading="lazy">
+                    </a>
+                  {% endif %}
+                  <div class="featured-body">
+                    <h4><a href="{{ item.permalink }}">{{ item.title }}</a></h4>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+
+          <!-- Ad Unit Slot -->
+          <div class="ad-unit ad-halfpage">
+            <span class="ad-label">{{ 'إعلان' if article.language == 'ar' else 'Advertisement' }}</span>
+            <div class="ad-container">
+              <span class="ad-placeholder-text">ADVERTISEMENT 300x600</span>
+            </div>
+          </div>
+
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</article>
